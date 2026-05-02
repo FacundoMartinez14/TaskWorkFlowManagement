@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace TaskWorkflowManagement.Api.Controllers;
+namespace TaskWorkFlowManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

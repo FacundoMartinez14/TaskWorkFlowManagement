@@ -31,7 +31,18 @@ From the repository root:
 cd TaskWorkFlowManagement.Api
 dotnet build
 dotnet run
+```
 
-Notes
+## Health check
+
+Once the API is running, the health endpoint should be available at:
+
+GET /api/health
+
+## Frontend setup
+
+The Angular frontend has not been created yet.
+
+## Notes
 
 This project is intended as a portfolio project for Full Stack Developer roles.
