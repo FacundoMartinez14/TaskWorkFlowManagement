@@ -62,7 +62,8 @@ dotnet build
 
 Before considering frontend work complete, run:
 
-```npm install
+```bash
+npm install
 npm run build
 ```
 
