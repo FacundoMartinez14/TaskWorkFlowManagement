@@ -2,7 +2,7 @@ namespace TaskWorkFlowManagement.Api.Models;
 
 public enum TaskItemStatus
 {
-    ToDo,
-    InProgress,
-    Done
+    ToDo = 0,
+    InProgress = 1,
+    Done = 2
 }

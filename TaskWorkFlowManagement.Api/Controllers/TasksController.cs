@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using TaskWorkFlowManagement.Api.Contracts.Tasks;
 using TaskWorkFlowManagement.Api.Models;
@@ -9,11 +10,17 @@ namespace TaskWorkFlowManagement.Api.Controllers;
 public class TasksController : ControllerBase
 {
     private static readonly List<TaskItem> Tasks = [];
+    private readonly IMapper _mapper;
+
+    public TasksController(IMapper mapper)
+    {
+        _mapper = mapper;
+    }
 
     [HttpGet]
     public ActionResult<IEnumerable<TaskItemDto>> GetAll()
     {
-        return Ok(Tasks.Select(ToDto));
+        return Ok(_mapper.Map<IEnumerable<TaskItemDto>>(Tasks));
     }
 
     [HttpPost]
@@ -30,16 +37,6 @@ public class TasksController : ControllerBase
 
         Tasks.Add(task);
 
-        return CreatedAtAction(nameof(GetAll), new { id = task.Id }, ToDto(task));
-    }
-
-    private static TaskItemDto ToDto(TaskItem task)
-    {
-        return new TaskItemDto(
-            task.Id,
-            task.Title,
-            task.Description,
-            task.Status,
-            task.CreatedAtUtc);
+        return CreatedAtAction(nameof(GetAll), new { id = task.Id }, _mapper.Map<TaskItemDto>(task));
     }
 }
