@@ -1,6 +1,8 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TaskWorkFlowManagement.Api.Contracts.Tasks;
+using TaskWorkFlowManagement.Api.Data;
 using TaskWorkFlowManagement.Api.Models;
 
 namespace TaskWorkFlowManagement.Api.Controllers;
@@ -9,22 +11,30 @@ namespace TaskWorkFlowManagement.Api.Controllers;
 [Route("api/tasks")]
 public class TasksController : ControllerBase
 {
-    private static readonly List<TaskItem> Tasks = [];
+    private readonly AppDbContext _dbContext;
     private readonly IMapper _mapper;
 
-    public TasksController(IMapper mapper)
+    public TasksController(AppDbContext dbContext, IMapper mapper)
     {
+        _dbContext = dbContext;
         _mapper = mapper;
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<TaskItemDto>> GetAll()
+    public async Task<ActionResult<IEnumerable<TaskItemDto>>> GetAll(CancellationToken cancellationToken)
     {
-        return Ok(_mapper.Map<IEnumerable<TaskItemDto>>(Tasks));
+        var tasks = await _dbContext.TaskItems
+            .AsNoTracking()
+            .OrderBy(task => task.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+
+        return Ok(_mapper.Map<IEnumerable<TaskItemDto>>(tasks));
     }
 
     [HttpPost]
-    public ActionResult<TaskItemDto> Create(CreateTaskItemRequest request)
+    public async Task<ActionResult<TaskItemDto>> Create(
+        CreateTaskItemRequest request,
+        CancellationToken cancellationToken)
     {
         var task = new TaskItem
         {
@@ -35,7 +45,8 @@ public class TasksController : ControllerBase
             CreatedAtUtc = DateTime.UtcNow
         };
 
-        Tasks.Add(task);
+        _dbContext.TaskItems.Add(task);
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         return CreatedAtAction(nameof(GetAll), new { id = task.Id }, _mapper.Map<TaskItemDto>(task));
     }
