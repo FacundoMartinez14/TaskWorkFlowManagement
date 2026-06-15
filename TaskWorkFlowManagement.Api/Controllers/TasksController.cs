@@ -31,6 +31,21 @@ public class TasksController : ControllerBase
         return Ok(_mapper.Map<IEnumerable<TaskItemDto>>(tasks));
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<TaskItemDto>> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        var task = await _dbContext.TaskItems
+            .AsNoTracking()
+            .FirstOrDefaultAsync(task => task.Id == id, cancellationToken);
+
+        if (task is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(_mapper.Map<TaskItemDto>(task));
+    }
+
     [HttpPost]
     public async Task<ActionResult<TaskItemDto>> Create(
         CreateTaskItemRequest request,
@@ -48,6 +63,66 @@ public class TasksController : ControllerBase
         _dbContext.TaskItems.Add(task);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return CreatedAtAction(nameof(GetAll), new { id = task.Id }, _mapper.Map<TaskItemDto>(task));
+        return CreatedAtAction(nameof(GetById), new { id = task.Id }, _mapper.Map<TaskItemDto>(task));
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        UpdateTaskItemRequest request,
+        CancellationToken cancellationToken)
+    {
+        var task = await _dbContext.TaskItems
+            .FirstOrDefaultAsync(task => task.Id == id, cancellationToken);
+
+        if (task is null)
+        {
+            return NotFound();
+        }
+
+        task.Title = request.Title;
+        task.Description = request.Description;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/status")]
+    public async Task<IActionResult> UpdateStatus(
+        Guid id,
+        UpdateTaskItemStatusRequest request,
+        CancellationToken cancellationToken)
+    {
+        var task = await _dbContext.TaskItems
+            .FirstOrDefaultAsync(task => task.Id == id, cancellationToken);
+
+        if (task is null)
+        {
+            return NotFound();
+        }
+
+        task.Status = request.Status;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        var task = await _dbContext.TaskItems
+            .FirstOrDefaultAsync(task => task.Id == id, cancellationToken);
+
+        if (task is null)
+        {
+            return NotFound();
+        }
+
+        _dbContext.TaskItems.Remove(task);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
     }
 }
