@@ -11,4 +11,14 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<TaskItem> TaskItems => Set<TaskItem>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<TaskItem>(entity =>
+        {
+            entity.Property(task => task.Title)
+                .HasMaxLength(TaskItem.TitleMaxLength)
+                .IsRequired();
+        });
+    }
 }

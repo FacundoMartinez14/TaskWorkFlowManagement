@@ -13,7 +13,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false));
     });
 builder.Services.AddAutoMapper(_ => { }, typeof(Program).Assembly);
 builder.Services.AddEndpointsApiExplorer();

@@ -2,6 +2,8 @@ namespace TaskWorkFlowManagement.Api.Models;
 
 public class TaskItem
 {
+    public const int TitleMaxLength = 200;
+
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public string Title { get; set; } = string.Empty;

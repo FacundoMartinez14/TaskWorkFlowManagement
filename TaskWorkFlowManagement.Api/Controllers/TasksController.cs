@@ -102,7 +102,13 @@ public class TasksController : ControllerBase
             return NotFound();
         }
 
-        task.Status = request.Status;
+        if (request.Status is null || !Enum.IsDefined(request.Status.Value))
+        {
+            ModelState.AddModelError(nameof(request.Status), "Status must be a valid task item status.");
+            return ValidationProblem(ModelState);
+        }
+
+        task.Status = request.Status.Value;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
