@@ -1,29 +1,51 @@
-# TaskWorkFlowManagement
+# Task & Workflow Management System
 
-TaskWorkFlowManagement is a full stack portfolio project built with .NET Web API and Angular.
+TaskWorkFlowManagement is a full stack portfolio project for building a modern task and workflow management application. The current focus is a clean, recruiter-friendly backend API that demonstrates practical .NET Web API, REST, validation, EF Core, PostgreSQL, and Git workflow skills.
 
-The goal of the project is to demonstrate modern full stack development practices, including API design, frontend integration, Git workflow, and clean project organization.
+The Angular frontend is planned but has not been created yet.
 
-## Tech stack
+## Current Backend Stack
 
-- Backend: .NET Web API
-- Frontend: Angular
-- Language: C#, TypeScript
-- Version control: Git / GitHub
+- .NET Web API
+- C#
+- ASP.NET Core controllers
+- Entity Framework Core
+- PostgreSQL with Npgsql
+- AutoMapper
+- Swagger / OpenAPI
+- EF Core migrations
 
-## Current status
+## Implemented Features
 
-The project is in its initial setup phase.
+- Health check endpoint
+- TaskItem CRUD API
+- Task status updates with enum-based statuses:
+  - `ToDo`
+  - `InProgress`
+  - `Done`
+- Request and response DTOs for task API contracts
+- Task title validation:
+  - required
+  - cannot be whitespace
+  - maximum length of 200 characters
+- JSON enum values serialized as strings
+- EF Core `AppDbContext` with `TaskItems`
+- Initial database migration and title length migration
+- Swagger UI enabled in Development
 
-## Planned features
+## Repository Structure
 
-- Task management
-- Workflow/status tracking
-- Project boards
-- User-facing Angular frontend
-- REST API backend
+```text
+TaskWorkFlowManagement.Api/
+  Controllers/
+  Contracts/
+  Data/
+  Mapping/
+  Migrations/
+  Models/
+```
 
-## Backend setup
+## Run the Backend Locally
 
 From the repository root:
 
@@ -33,16 +55,57 @@ dotnet build
 dotnet run
 ```
 
-## Health check
+The API launch profiles currently use:
 
-Once the API is running, the health endpoint should be available at:
+- HTTPS: `https://localhost:7239`
+- HTTP: `http://localhost:5095`
 
-GET /api/health
+Swagger UI is available in Development at:
 
-## Frontend setup
+- `https://localhost:7239/swagger`
+- `http://localhost:5095/swagger`
 
-The Angular frontend has not been created yet.
+## PostgreSQL Configuration
 
-## Notes
+The API reads the database connection from `ConnectionStrings:DefaultConnection` in `TaskWorkFlowManagement.Api/appsettings.json`.
 
-This project is intended as a portfolio project for Full Stack Developer roles.
+Current local connection string:
+
+```json
+"DefaultConnection": "Host=localhost;Port=5432;Database=task_workflow_management;Username=postgres;Password=Password1"
+```
+
+To run locally, make sure PostgreSQL is running and update the connection string if your local username, password, host, port, or database name differs.
+
+## Apply EF Core Migrations
+
+In Development, the API applies pending migrations on startup through `Database.MigrateAsync()`.
+
+You can also apply migrations manually from the repository root:
+
+```bash
+dotnet ef database update --project TaskWorkFlowManagement.Api
+```
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `GET` | `/api/health` | Returns API health information |
+| `GET` | `/api/tasks` | Lists all tasks |
+| `GET` | `/api/tasks/{id}` | Gets one task by ID |
+| `POST` | `/api/tasks` | Creates a task |
+| `PUT` | `/api/tasks/{id}` | Updates a task title and description |
+| `PATCH` | `/api/tasks/{id}/status` | Updates a task status |
+| `DELETE` | `/api/tasks/{id}` | Deletes a task |
+
+## Current Status
+
+The backend API has the first working task management slice: persistence, migrations, validation, DTOs, CRUD endpoints, task status handling, and Swagger documentation.
+
+Suggested next steps:
+
+- Create the Angular frontend
+- Add a task list UI connected to the API
+- Add task create/edit forms
+- Add basic filtering by task status when the task list grows
