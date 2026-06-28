@@ -7,8 +7,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(connectionString) ||
+    connectionString.Contains("YOUR_", StringComparison.OrdinalIgnoreCase))
+{
+    throw new InvalidOperationException(
+        "Database connection string 'ConnectionStrings:DefaultConnection' is missing or contains placeholder values. " +
+        "Set the ConnectionStrings__DefaultConnection environment variable or configure it in appsettings.json.");
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

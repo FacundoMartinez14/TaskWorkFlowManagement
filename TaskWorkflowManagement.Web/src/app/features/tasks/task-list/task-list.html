@@ -1,0 +1,41 @@
+<section class="task-list" aria-labelledby="task-list-heading">
+  <div class="task-list__header">
+    <div>
+      <h2 id="task-list-heading">Current Tasks</h2>
+      <p>Loaded from the backend TaskItem API.</p>
+    </div>
+
+    <button type="button" (click)="loadTaskItems()" [disabled]="isLoading()">
+      Refresh
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <p class="state-message">Loading task items...</p>
+  } @else if (errorMessage()) {
+    <p class="state-message state-message--error">{{ errorMessage() }}</p>
+  } @else if (!hasTaskItems()) {
+    <p class="state-message">No task items found yet.</p>
+  } @else {
+    <ul class="task-items">
+      @for (taskItem of taskItems(); track taskItem.id) {
+        <li class="task-item">
+          <div>
+            <div class="task-item__title-row">
+              <h3>{{ taskItem.title }}</h3>
+              <span class="status">{{ taskItem.status }}</span>
+            </div>
+
+            @if (taskItem.description) {
+              <p class="description">{{ taskItem.description }}</p>
+            } @else {
+              <p class="description description--empty">No description provided.</p>
+            }
+          </div>
+
+          <p class="created-date">Created {{ taskItem.createdAtUtc | date: 'medium' }}</p>
+        </li>
+      }
+    </ul>
+  }
+</section>

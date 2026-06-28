@@ -41,7 +41,15 @@ GET /api/health
 
 ## Frontend setup
 
-The Angular frontend has not been created yet.
+From the repository root:
+
+```bash
+cd TaskWorkflowManagement.Web
+npm install
+npm start
+```
+
+Open `http://localhost:4200/`. The Angular dev server proxies `/api` requests to the backend at `http://localhost:5095`.
 
 ## Notes
 
