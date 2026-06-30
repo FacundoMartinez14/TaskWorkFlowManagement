@@ -27,6 +27,8 @@ Use this skill when working on:
 ## Rules
 
 - Use modern Angular conventions.
+- Name component files in kebab-case with the `.component.ts`, `.component.html`, and `.component.css` suffixes.
+- End component class names with `Component`.
 - Prefer standalone components if the Angular version and project setup support them.
 - Keep components focused on presentation and UI interaction.
 - Put HTTP calls in Angular services, not directly inside components.

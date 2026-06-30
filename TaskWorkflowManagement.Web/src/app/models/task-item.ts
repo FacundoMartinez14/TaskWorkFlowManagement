@@ -7,3 +7,8 @@ export interface TaskItem {
   status: TaskItemStatus;
   createdAtUtc: string;
 }
+
+export interface CreateTaskItemRequest {
+  title: string;
+  description: string | null;
+}

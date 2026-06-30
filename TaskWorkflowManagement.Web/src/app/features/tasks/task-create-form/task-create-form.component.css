@@ -1,0 +1,108 @@
+.task-form {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.task-form__header {
+  margin-bottom: 20px;
+}
+
+h2,
+p {
+  margin: 0;
+}
+
+h2 {
+  color: #0f172a;
+  font-size: 1.25rem;
+}
+
+.task-form__header p {
+  margin-top: 6px;
+  color: #475569;
+}
+
+form {
+  display: grid;
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+label {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+label span {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: #0f172a;
+  font: inherit;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #2563eb;
+  outline: 2px solid #bfdbfe;
+}
+
+input[aria-invalid='true'] {
+  border-color: #dc2626;
+}
+
+.field-error,
+.submit-error {
+  color: #b91c1c;
+  font-size: 0.875rem;
+}
+
+.submit-error {
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  background: #fef2f2;
+  padding: 12px;
+}
+
+button {
+  justify-self: start;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 10px 16px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 640px) {
+  .task-form {
+    padding: 16px;
+  }
+
+  button {
+    width: 100%;
+  }
+}
