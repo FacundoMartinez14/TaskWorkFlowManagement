@@ -3,14 +3,15 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 
 import { TaskItem } from '../../../models/task-item';
 import { TaskItemsService } from '../../../services/task-items.service';
+import { TaskCreateFormComponent } from '../task-create-form/task-create-form.component';
 
 @Component({
   selector: 'app-task-list',
-  imports: [DatePipe],
-  templateUrl: './task-list.html',
-  styleUrl: './task-list.css'
+  imports: [DatePipe, TaskCreateFormComponent],
+  templateUrl: './task-list.component.html',
+  styleUrl: './task-list.component.css'
 })
-export class TaskList implements OnInit {
+export class TaskListComponent implements OnInit {
   private readonly taskItemsService = inject(TaskItemsService);
 
   protected readonly taskItems = signal<TaskItem[]>([]);
