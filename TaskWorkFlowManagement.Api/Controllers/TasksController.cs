@@ -21,6 +21,7 @@ public class TasksController : ControllerBase
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<TaskItemDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<TaskItemDto>>> GetAll(CancellationToken cancellationToken)
     {
         var tasks = await _dbContext.TaskItems
@@ -32,6 +33,8 @@ public class TasksController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(TaskItemDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TaskItemDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var task = await _dbContext.TaskItems
@@ -47,6 +50,8 @@ public class TasksController : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(TaskItemDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<TaskItemDto>> Create(
         CreateTaskItemRequest request,
         CancellationToken cancellationToken)
@@ -67,6 +72,9 @@ public class TasksController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(
         Guid id,
         UpdateTaskItemRequest request,
@@ -89,6 +97,9 @@ public class TasksController : ControllerBase
     }
 
     [HttpPatch("{id:guid}/status")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateStatus(
         Guid id,
         UpdateTaskItemStatusRequest request,
@@ -116,6 +127,8 @@ public class TasksController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var task = await _dbContext.TaskItems
@@ -126,7 +139,9 @@ public class TasksController : ControllerBase
             return NotFound();
         }
 
-        _dbContext.TaskItems.Remove(task);
+        task.IsDeleted = true;
+        task.DeletedAtUtc = DateTime.UtcNow;
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return NoContent();

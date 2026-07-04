@@ -13,4 +13,8 @@ public class TaskItem
     public TaskItemStatus Status { get; set; } = TaskItemStatus.ToDo;
 
     public DateTime CreatedAtUtc { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    public DateTime? DeletedAtUtc { get; set; }
 }
