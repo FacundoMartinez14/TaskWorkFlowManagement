@@ -16,6 +16,8 @@ public class AppDbContext : DbContext
     {
         modelBuilder.Entity<TaskItem>(entity =>
         {
+            entity.HasQueryFilter(task => !task.IsDeleted);
+
             entity.Property(task => task.Title)
                 .HasMaxLength(TaskItem.TitleMaxLength)
                 .IsRequired();
