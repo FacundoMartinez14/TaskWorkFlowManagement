@@ -1,4 +1,4 @@
-export type TaskItemStatus = 'ToDo' | 'InProgress' | 'Done';
+import type { TaskItemStatus } from './task-item-status';
 
 export interface TaskItem {
   id: string;
@@ -11,4 +11,8 @@ export interface TaskItem {
 export interface CreateTaskItemRequest {
   title: string;
   description: string | null;
+}
+
+export interface UpdateTaskItemStatusRequest {
+  status: TaskItemStatus;
 }

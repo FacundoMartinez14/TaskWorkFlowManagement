@@ -2,7 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { CreateTaskItemRequest, TaskItem } from '../models/task-item';
+import {
+  CreateTaskItemRequest,
+  TaskItem,
+  UpdateTaskItemStatusRequest
+} from '../models/task-item';
 
 @Injectable({
   providedIn: 'root'
@@ -17,5 +21,9 @@ export class TaskItemsService {
 
   createTaskItem(request: CreateTaskItemRequest): Observable<TaskItem> {
     return this.http.post<TaskItem>(this.taskItemsUrl, request);
+  }
+
+  updateTaskItemStatus(id: string, request: UpdateTaskItemStatusRequest): Observable<void> {
+    return this.http.patch<void>(`${this.taskItemsUrl}/${id}/status`, request);
   }
 }

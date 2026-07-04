@@ -88,14 +88,41 @@ h3 {
   font-size: 1rem;
 }
 
-.status {
+.status-control {
+  display: flex;
+  gap: 8px;
+  align-items: center;
   flex: 0 0 auto;
-  border-radius: 999px;
-  background: #e0f2fe;
-  color: #075985;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 8px;
+}
+
+.status-control label {
+  color: #475569;
+  font-size: 0.875rem;
+}
+
+.status-control select {
+  flex: 0 0 auto;
+  border: 1px solid #94a3b8;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 6px 8px;
+}
+
+.status-control select:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.status-message {
+  color: #475569;
+  margin-top: 8px;
+  font-size: 0.875rem;
+  text-align: right;
+}
+
+.status-message--error {
+  color: #b91c1c;
 }
 
 .description {
@@ -128,7 +155,7 @@ h3 {
     width: 100%;
   }
 
-  .status {
+  .status-control {
     align-self: flex-start;
   }
 }
