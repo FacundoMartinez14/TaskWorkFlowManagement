@@ -50,6 +50,18 @@ button:disabled {
   opacity: 0.6;
 }
 
+.button--secondary {
+  border-color: #94a3b8;
+  background: #ffffff;
+  color: #334155;
+}
+
+.button--danger {
+  border-color: #dc2626;
+  background: #ffffff;
+  color: #b91c1c;
+}
+
 .state-message {
   border: 1px dashed #cbd5e1;
   border-radius: 6px;
@@ -125,6 +137,68 @@ h3 {
   color: #b91c1c;
 }
 
+.edit-form,
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.edit-form {
+  gap: 14px;
+}
+
+.field label {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.field label span {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: #0f172a;
+  font: inherit;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: #2563eb;
+  outline: 2px solid #bfdbfe;
+}
+
+.field input[aria-invalid='true'] {
+  border-color: #dc2626;
+}
+
+.field-error,
+.item-error {
+  color: #b91c1c;
+  font-size: 0.875rem;
+}
+
+.item-message,
+.item-error {
+  margin-top: 12px;
+}
+
+.task-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
 .description {
   margin-top: 8px;
   line-height: 1.5;
@@ -157,5 +231,9 @@ h3 {
 
   .status-control {
     align-self: flex-start;
+  }
+
+  .task-actions {
+    flex-direction: column;
   }
 }

@@ -13,6 +13,11 @@ export interface CreateTaskItemRequest {
   description: string | null;
 }
 
+export interface UpdateTaskItemRequest {
+  title: string;
+  description: string | null;
+}
+
 export interface UpdateTaskItemStatusRequest {
   status: TaskItemStatus;
 }
