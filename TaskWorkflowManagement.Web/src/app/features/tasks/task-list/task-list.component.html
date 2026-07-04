@@ -25,8 +25,29 @@
           <div>
             <div class="task-item__title-row">
               <h3>{{ taskItem.title }}</h3>
-              <span class="status">{{ taskItem.status }}</span>
+              <div class="status-control">
+                <label [for]="'task-status-' + taskItem.id">Status</label>
+                <select
+                  [id]="'task-status-' + taskItem.id"
+                  [disabled]="isStatusUpdating(taskItem.id)"
+                  (change)="updateStatus(taskItem, $event)"
+                >
+                  @for (status of taskItemStatuses; track status) {
+                    <option [value]="status" [selected]="status === taskItem.status">
+                      {{ status }}
+                    </option>
+                  }
+                </select>
+              </div>
             </div>
+
+            @if (isStatusUpdating(taskItem.id)) {
+              <p class="status-message" role="status">Updating status...</p>
+            } @else if (statusUpdateErrors()[taskItem.id]) {
+              <p class="status-message status-message--error" role="alert">
+                {{ statusUpdateErrors()[taskItem.id] }}
+              </p>
+            }
 
             @if (taskItem.description) {
               <p class="description">{{ taskItem.description }}</p>
