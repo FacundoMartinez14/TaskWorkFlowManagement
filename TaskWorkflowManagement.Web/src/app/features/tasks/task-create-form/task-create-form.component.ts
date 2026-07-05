@@ -1,7 +1,10 @@
 import { Component, inject, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { CreateTaskItemRequest } from '../../../models/task-item';
+import {
+  CreateTaskItemRequest,
+  TASK_ITEM_TITLE_MAX_LENGTH
+} from '../../../models/task-item';
 import { TaskItemsService } from '../../../services/task-items.service';
 
 @Component({
@@ -16,8 +19,12 @@ export class TaskCreateFormComponent {
 
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly titleMaxLength = TASK_ITEM_TITLE_MAX_LENGTH;
   protected readonly taskForm = this.formBuilder.nonNullable.group({
-    title: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(200)]],
+    title: [
+      '',
+      [Validators.required, Validators.pattern(/\S/), Validators.maxLength(TASK_ITEM_TITLE_MAX_LENGTH)]
+    ],
     description: ['']
   });
 

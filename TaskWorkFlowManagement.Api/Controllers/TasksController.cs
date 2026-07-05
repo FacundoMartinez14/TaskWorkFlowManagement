@@ -59,8 +59,8 @@ public class TasksController : ControllerBase
         var task = new TaskItem
         {
             Id = Guid.NewGuid(),
-            Title = request.Title,
-            Description = request.Description,
+            Title = request.Title.Trim(),
+            Description = NormalizeOptionalText(request.Description),
             Status = TaskItemStatus.ToDo,
             CreatedAtUtc = DateTime.UtcNow
         };
@@ -88,8 +88,8 @@ public class TasksController : ControllerBase
             return NotFound();
         }
 
-        task.Title = request.Title;
-        task.Description = request.Description;
+        task.Title = request.Title.Trim();
+        task.Description = NormalizeOptionalText(request.Description);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -146,4 +146,7 @@ public class TasksController : ControllerBase
 
         return NoContent();
     }
+
+    private static string? NormalizeOptionalText(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

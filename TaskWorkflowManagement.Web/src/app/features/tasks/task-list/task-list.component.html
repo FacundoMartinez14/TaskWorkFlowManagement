@@ -22,14 +22,66 @@
     <ul class="task-items">
       @for (taskItem of taskItems(); track taskItem.id) {
         <li class="task-item">
-          <div>
+          @if (editingTaskItemId() === taskItem.id) {
+            <form class="edit-form" [formGroup]="editForm" (ngSubmit)="saveEdit(taskItem)">
+              <div class="field">
+                <label [for]="'edit-task-title-' + taskItem.id">Title</label>
+                <input
+                  [id]="'edit-task-title-' + taskItem.id"
+                  type="text"
+                  formControlName="title"
+                  [attr.maxlength]="titleMaxLength"
+                  [attr.aria-invalid]="editForm.controls.title.invalid && editForm.controls.title.touched"
+                />
+
+                @if (editForm.controls.title.invalid && editForm.controls.title.touched) {
+                  <p class="field-error">
+                    @if (editForm.controls.title.hasError('maxlength')) {
+                      Title must be {{ titleMaxLength }} characters or fewer.
+                    } @else {
+                      Title is required.
+                    }
+                  </p>
+                }
+              </div>
+
+              <div class="field">
+                <label [for]="'edit-task-description-' + taskItem.id">
+                  Description <span>(optional)</span>
+                </label>
+                <textarea
+                  [id]="'edit-task-description-' + taskItem.id"
+                  formControlName="description"
+                  rows="3"
+                ></textarea>
+              </div>
+
+              @if (editErrorMessage()) {
+                <p class="operation-error" role="alert">{{ editErrorMessage() }}</p>
+              }
+
+              <div class="task-actions">
+                <button type="submit" [disabled]="isSavingEdit()">
+                  {{ isSavingEdit() ? 'Saving...' : 'Save' }}
+                </button>
+                <button
+                  type="button"
+                  class="button--secondary"
+                  (click)="cancelEditing()"
+                  [disabled]="isSavingEdit()"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          } @else {
             <div class="task-item__title-row">
               <h3>{{ taskItem.title }}</h3>
               <div class="status-control">
                 <label [for]="'task-status-' + taskItem.id">Status</label>
                 <select
                   [id]="'task-status-' + taskItem.id"
-                  [disabled]="isStatusUpdating(taskItem.id)"
+                  [disabled]="isStatusUpdating(taskItem.id) || isDeleting(taskItem.id) || isSavingEdit()"
                   (change)="updateStatus(taskItem, $event)"
                 >
                   @for (status of taskItemStatuses; track status) {
@@ -54,7 +106,30 @@
             } @else {
               <p class="description description--empty">No description provided.</p>
             }
-          </div>
+
+            <div class="task-actions">
+              <button
+                type="button"
+                class="button--secondary"
+                (click)="startEditing(taskItem)"
+                [disabled]="isDeleting(taskItem.id) || isSavingEdit()"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                class="button--danger"
+                (click)="deleteTaskItem(taskItem)"
+                [disabled]="isDeleting(taskItem.id) || isSavingEdit()"
+              >
+                {{ isDeleting(taskItem.id) ? 'Deleting...' : 'Delete' }}
+              </button>
+            </div>
+
+            @if (deleteErrors()[taskItem.id]) {
+              <p class="operation-error" role="alert">{{ deleteErrors()[taskItem.id] }}</p>
+            }
+          }
 
           <p class="created-date">Created {{ taskItem.createdAtUtc | date: 'medium' }}</p>
         </li>

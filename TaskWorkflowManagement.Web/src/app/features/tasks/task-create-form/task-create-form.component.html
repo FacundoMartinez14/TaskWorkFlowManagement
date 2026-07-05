@@ -11,7 +11,7 @@
         id="task-title"
         type="text"
         formControlName="title"
-        maxlength="200"
+        [attr.maxlength]="titleMaxLength"
         autocomplete="off"
         [attr.aria-invalid]="taskForm.controls.title.invalid && taskForm.controls.title.touched"
         [attr.aria-describedby]="
@@ -24,7 +24,7 @@
       @if (taskForm.controls.title.invalid && taskForm.controls.title.touched) {
         <p id="task-title-error" class="field-error">
           @if (taskForm.controls.title.hasError('maxlength')) {
-            Title must be 200 characters or fewer.
+            Title must be {{ titleMaxLength }} characters or fewer.
           } @else {
             Title is required.
           }

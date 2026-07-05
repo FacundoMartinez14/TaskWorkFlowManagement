@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import {
   CreateTaskItemRequest,
   TaskItem,
+  UpdateTaskItemRequest,
   UpdateTaskItemStatusRequest
 } from '../models/task-item';
 
@@ -23,7 +24,15 @@ export class TaskItemsService {
     return this.http.post<TaskItem>(this.taskItemsUrl, request);
   }
 
+  updateTaskItem(id: string, request: UpdateTaskItemRequest): Observable<void> {
+    return this.http.put<void>(`${this.taskItemsUrl}/${id}`, request);
+  }
+
   updateTaskItemStatus(id: string, request: UpdateTaskItemStatusRequest): Observable<void> {
     return this.http.patch<void>(`${this.taskItemsUrl}/${id}/status`, request);
+  }
+
+  deleteTaskItem(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.taskItemsUrl}/${id}`);
   }
 }
