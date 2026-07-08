@@ -1,7 +1,6 @@
-import { DatePipe } from '@angular/common';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
@@ -9,16 +8,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 import { TaskItemStatus } from '../../../models/task-item-status';
-import { TASK_ITEM_TITLE_MAX_LENGTH, TaskItem, UpdateTaskItemRequest } from '../../../models/task-item';
+import { TaskItem } from '../../../models/task-item';
 import { TaskItemsService } from '../../../services/task-items.service';
+import { TaskCardComponent } from '../task-card/task-card.component';
 import { TaskCreateFormComponent } from '../task-create-form/task-create-form.component';
 import { TaskDeleteDialogComponent } from '../task-delete-dialog/task-delete-dialog.component';
+import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.component';
 
 interface BoardColumn {
   status: TaskItemStatus;
@@ -30,7 +29,6 @@ interface BoardColumn {
 @Component({
   selector: 'app-task-list',
   imports: [
-    DatePipe,
     DragDropModule,
     MatButtonModule,
     MatCardModule,
@@ -38,9 +36,8 @@ interface BoardColumn {
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
-    MatTooltipModule,
     ReactiveFormsModule,
+    TaskCardComponent,
     TaskCreateFormComponent
   ],
   templateUrl: './task-list.component.html',
@@ -48,25 +45,38 @@ interface BoardColumn {
 })
 export class TaskListComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
-  private readonly formBuilder = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
   private readonly taskItemsService = inject(TaskItemsService);
 
   protected readonly boardColumns: readonly BoardColumn[] = [
-    { status: TaskItemStatus.ToDo, title: 'To Do', description: 'Ready to start', icon: 'inbox' },
-    { status: TaskItemStatus.InProgress, title: 'In Progress', description: 'Currently underway', icon: 'pending_actions' },
-    { status: TaskItemStatus.Done, title: 'Done', description: 'Completed work', icon: 'task_alt' }
+    {
+      status: TaskItemStatus.ToDo,
+      title: 'To Do',
+      description: 'Ready to start',
+      icon: 'inbox'
+    },
+    {
+      status: TaskItemStatus.InProgress,
+      title: 'In Progress',
+      description: 'Currently underway',
+      icon: 'pending_actions'
+    },
+    {
+      status: TaskItemStatus.Done,
+      title: 'Done',
+      description: 'Completed work',
+      icon: 'task_alt'
+    }
   ];
   protected readonly columnIds = this.boardColumns.map(column => this.columnId(column.status));
-  protected readonly taskItemStatuses = Object.values(TaskItemStatus);
   protected readonly statusLabels: Record<TaskItemStatus, string> = {
     [TaskItemStatus.ToDo]: 'To Do',
     [TaskItemStatus.InProgress]: 'In Progress',
     [TaskItemStatus.Done]: 'Done'
   };
-  protected readonly titleMaxLength = TASK_ITEM_TITLE_MAX_LENGTH;
   protected readonly taskItems = signal<TaskItem[]>([]);
   protected readonly isLoading = signal(true);
+  protected readonly isRefreshing = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly filterControl = new FormControl('', { nonNullable: true });
   private readonly filterTerm = toSignal(this.filterControl.valueChanges, {
@@ -83,39 +93,48 @@ export class TaskListComponent implements OnInit {
     );
   });
   protected readonly updatingTaskItemIds = signal<ReadonlySet<string>>(new Set());
-  protected readonly statusUpdateErrors = signal<Readonly<Record<string, string>>>({});
-  protected readonly editingTaskItemId = signal<string | null>(null);
-  protected readonly isSavingEdit = signal(false);
-  protected readonly editErrorMessage = signal<string | null>(null);
+  protected readonly statusUpdateErrors = signal<Readonly<Partial<Record<string, string>>>>({});
   protected readonly deletingTaskItemIds = signal<ReadonlySet<string>>(new Set());
-  protected readonly deleteErrors = signal<Readonly<Record<string, string>>>({});
-  protected readonly editForm = this.formBuilder.nonNullable.group({
-    title: [
-      '',
-      [Validators.required, Validators.pattern(/\S/), Validators.maxLength(TASK_ITEM_TITLE_MAX_LENGTH)]
-    ],
-    description: ['']
-  });
+  protected readonly deleteErrors = signal<Readonly<Partial<Record<string, string>>>>({});
+  private readonly hasLoaded = signal(false);
 
   ngOnInit(): void {
     this.loadTaskItems();
   }
 
   protected loadTaskItems(): void {
-    this.isLoading.set(true);
+    if (this.hasLoaded()) {
+      this.isRefreshing.set(true);
+    } else {
+      this.isLoading.set(true);
+    }
     this.errorMessage.set(null);
 
     this.taskItemsService.getTaskItems().subscribe({
       next: taskItems => {
         this.taskItems.set(taskItems);
+        this.hasLoaded.set(true);
         this.isLoading.set(false);
+        this.isRefreshing.set(false);
       },
       error: () => {
-        this.taskItems.set([]);
-        this.errorMessage.set('Unable to load tasks. Make sure the backend API is running.');
+        if (this.hasLoaded()) {
+          this.showSnackBar('Unable to refresh tasks. Please try again.', 'error-snackbar');
+        } else {
+          this.taskItems.set([]);
+          this.errorMessage.set('Unable to load tasks. Make sure the backend API is running.');
+        }
         this.isLoading.set(false);
+        this.isRefreshing.set(false);
       }
     });
+  }
+
+  protected addTaskItem(taskItem: TaskItem): void {
+    this.taskItems.update(taskItems => [...taskItems, taskItem]);
+    this.hasLoaded.set(true);
+    this.isLoading.set(false);
+    this.errorMessage.set(null);
   }
 
   protected tasksForStatus(status: TaskItemStatus): TaskItem[] {
@@ -135,67 +154,29 @@ export class TaskListComponent implements OnInit {
     this.changeStatus(taskItem, status, `Task moved to ${this.statusLabels[status]}.`);
   }
 
-  protected updateStatus(taskItem: TaskItem, status: TaskItemStatus): void {
-    if (status === taskItem.status || this.isTaskBusy(taskItem.id)) {
-      return;
-    }
-
-    this.changeStatus(taskItem, status, `Status updated to ${this.statusLabels[status]}.`);
-  }
-
   protected isStatusUpdating(taskItemId: string): boolean {
     return this.updatingTaskItemIds().has(taskItemId);
   }
 
   protected isTaskBusy(taskItemId: string): boolean {
-    return this.isStatusUpdating(taskItemId) || this.isDeleting(taskItemId) || this.isSavingEdit();
+    return this.isStatusUpdating(taskItemId) || this.isDeleting(taskItemId);
   }
 
-  protected startEditing(taskItem: TaskItem): void {
+  protected openEditDialog(taskItem: TaskItem): void {
     if (this.isTaskBusy(taskItem.id)) {
       return;
     }
 
-    this.editingTaskItemId.set(taskItem.id);
-    this.editErrorMessage.set(null);
-    this.editForm.reset({ title: taskItem.title, description: taskItem.description ?? '' });
-  }
-
-  protected cancelEditing(): void {
-    this.editingTaskItemId.set(null);
-    this.editErrorMessage.set(null);
-    this.editForm.reset();
-  }
-
-  protected saveEdit(taskItem: TaskItem): void {
-    if (this.editForm.invalid || this.isSavingEdit()) {
-      this.editForm.markAllAsTouched();
-      return;
-    }
-
-    const formValue = this.editForm.getRawValue();
-    const request: UpdateTaskItemRequest = {
-      title: formValue.title.trim(),
-      description: formValue.description.trim() || null
-    };
-
-    this.isSavingEdit.set(true);
-    this.editErrorMessage.set(null);
-
-    this.taskItemsService.updateTaskItem(taskItem.id, request).subscribe({
-      next: () => {
+    this.dialog.open<TaskEditDialogComponent, TaskItem, TaskItem>(TaskEditDialogComponent, {
+      data: taskItem,
+      maxWidth: '600px',
+      width: 'calc(100% - 32px)'
+    }).afterClosed().subscribe(updatedTaskItem => {
+      if (updatedTaskItem) {
         this.taskItems.update(taskItems =>
-          taskItems.map(item => item.id === taskItem.id ? { ...item, ...request } : item)
+          taskItems.map(item => item.id === updatedTaskItem.id ? updatedTaskItem : item)
         );
-        this.isSavingEdit.set(false);
-        this.cancelEditing();
         this.showSnackBar('Task updated.', 'success-snackbar');
-      },
-      error: () => {
-        const message = 'Unable to save the task. Please try again.';
-        this.editErrorMessage.set(message);
-        this.isSavingEdit.set(false);
-        this.showSnackBar(message, 'error-snackbar');
       }
     });
   }

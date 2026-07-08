@@ -9,7 +9,7 @@
     <form [formGroup]="taskForm" (ngSubmit)="submit()">
       <mat-form-field appearance="outline">
         <mat-label>Title</mat-label>
-        <input matInput formControlName="title" [maxlength]="titleMaxLength" autocomplete="off" />
+        <input #titleInput matInput formControlName="title" [maxlength]="titleMaxLength" autocomplete="off" />
         <mat-hint align="end">{{ taskForm.controls.title.value.length }}/{{ titleMaxLength }}</mat-hint>
         @if (taskForm.controls.title.hasError('maxlength')) {
           <mat-error>Title must be {{ titleMaxLength }} characters or fewer.</mat-error>

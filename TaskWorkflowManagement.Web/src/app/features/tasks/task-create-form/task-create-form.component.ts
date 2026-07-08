@@ -1,4 +1,4 @@
-import { Component, inject, output, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, inject, output, signal, viewChild } from '@angular/core';
 import { FormBuilder, FormGroupDirective, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
-import { CreateTaskItemRequest, TASK_ITEM_TITLE_MAX_LENGTH } from '../../../models/task-item';
+import { CreateTaskItemRequest, TASK_ITEM_TITLE_MAX_LENGTH, TaskItem } from '../../../models/task-item';
 import { TaskItemsService } from '../../../services/task-items.service';
 
 @Component({
@@ -30,6 +30,7 @@ export class TaskCreateFormComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly taskItemsService = inject(TaskItemsService);
   private readonly taskFormDirective = viewChild.required(FormGroupDirective);
+  private readonly titleInput = viewChild.required<ElementRef<HTMLInputElement>>('titleInput');
 
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
@@ -42,7 +43,7 @@ export class TaskCreateFormComponent {
     description: ['']
   });
 
-  readonly taskCreated = output<void>();
+  readonly taskCreated = output<TaskItem>();
 
   protected submit(): void {
     if (this.taskForm.invalid || this.isSubmitting()) {
@@ -60,11 +61,12 @@ export class TaskCreateFormComponent {
     this.errorMessage.set(null);
 
     this.taskItemsService.createTaskItem(request).subscribe({
-      next: () => {
+      next: taskItem => {
         this.taskFormDirective().resetForm({ title: '', description: '' });
         this.isSubmitting.set(false);
-        this.taskCreated.emit();
+        this.taskCreated.emit(taskItem);
         this.showSnackBar('Task created.', 'success-snackbar');
+        this.titleInput().nativeElement.focus();
       },
       error: () => {
         const message = 'Unable to create the task. Please try again.';

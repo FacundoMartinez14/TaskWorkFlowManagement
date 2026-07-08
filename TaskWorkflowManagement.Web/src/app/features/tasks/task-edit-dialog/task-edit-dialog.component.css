@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+form {
+  min-width: min(520px, calc(100vw - 64px));
+}
+
+.dialog-intro {
+  margin: 0 0 18px;
+  color: #65718a;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+mat-dialog-content {
+  display: grid;
+  padding-top: 4px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.save-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  border-radius: 8px;
+  background: #ffedea;
+  color: #9f251e;
+  padding: 10px 12px;
+  font-size: 0.875rem;
+}
+
+mat-dialog-actions {
+  padding: 12px 24px 20px;
+}
+
+mat-dialog-actions mat-spinner {
+  display: inline-block;
+  margin-right: 7px;
+}
+
+@media (max-width: 600px) {
+  form {
+    min-width: 0;
+  }
+
+  mat-dialog-actions {
+    padding-inline: 16px;
+  }
+}
