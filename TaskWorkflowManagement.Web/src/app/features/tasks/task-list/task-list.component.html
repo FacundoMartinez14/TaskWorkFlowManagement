@@ -1,10 +1,10 @@
-<app-task-create-form (taskCreated)="loadTaskItems()" />
+<app-task-create-form (taskCreated)="addTaskItem($event)" />
 
 <section class="workflow" aria-labelledby="workflow-heading">
   <div class="workflow__toolbar">
     <div>
       <h2 id="workflow-heading">Your workflow</h2>
-      <p>Drag cards between columns or choose a status from the card.</p>
+      <p>Drag cards between columns or open a card to edit its details and status.</p>
     </div>
 
     <div class="workflow__controls">
@@ -19,9 +19,18 @@
         }
       </mat-form-field>
 
-      <button mat-stroked-button type="button" (click)="loadTaskItems()" [disabled]="isLoading()">
-        <mat-icon aria-hidden="true">refresh</mat-icon>
-        Refresh
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="loadTaskItems()"
+        [disabled]="isLoading() || isRefreshing()"
+      >
+        @if (isRefreshing()) {
+          <mat-spinner diameter="18" />
+        } @else {
+          <mat-icon aria-hidden="true">refresh</mat-icon>
+        }
+        {{ isRefreshing() ? 'Refreshing…' : 'Refresh' }}
       </button>
     </div>
   </div>
@@ -51,7 +60,11 @@
   } @else {
     <div class="board" cdkDropListGroup>
       @for (column of boardColumns; track column.status) {
-        <section class="board-column" [attr.aria-labelledby]="columnId(column.status) + '-heading'">
+        <section
+          class="board-column"
+          [attr.data-status]="column.status"
+          [attr.aria-labelledby]="columnId(column.status) + '-heading'"
+        >
           <header class="board-column__header">
             <div class="board-column__title">
               <mat-icon aria-hidden="true">{{ column.icon }}</mat-icon>
@@ -71,112 +84,19 @@
             [id]="columnId(column.status)"
             [cdkDropListData]="tasksForStatus(column.status)"
             [cdkDropListConnectedTo]="columnIds"
+            [cdkDropListSortingDisabled]="true"
             (cdkDropListDropped)="dropTask($event, column.status)"
           >
             @for (taskItem of tasksForStatus(column.status); track taskItem.id) {
-              <mat-card
-                class="task-card"
-                appearance="outlined"
-                cdkDrag
-                [cdkDragData]="taskItem"
-                [cdkDragDisabled]="isTaskBusy(taskItem.id) || editingTaskItemId() === taskItem.id"
-              >
-                <div class="task-card__placeholder" *cdkDragPlaceholder></div>
-
-                @if (editingTaskItemId() === taskItem.id) {
-                  <form class="edit-form" [formGroup]="editForm" (ngSubmit)="saveEdit(taskItem)">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Title</mat-label>
-                      <input matInput formControlName="title" [maxlength]="titleMaxLength" />
-                      @if (editForm.controls.title.hasError('maxlength')) {
-                        <mat-error>Maximum {{ titleMaxLength }} characters.</mat-error>
-                      } @else if (editForm.controls.title.invalid) {
-                        <mat-error>Title is required.</mat-error>
-                      }
-                    </mat-form-field>
-
-                    <mat-form-field appearance="outline">
-                      <mat-label>Description</mat-label>
-                      <textarea matInput formControlName="description" rows="3"></textarea>
-                    </mat-form-field>
-
-                    @if (editErrorMessage()) {
-                      <p class="operation-error" role="alert">{{ editErrorMessage() }}</p>
-                    }
-
-                    <div class="task-actions">
-                      <button mat-flat-button type="submit" [disabled]="isSavingEdit()">
-                        @if (isSavingEdit()) { Saving… } @else { Save }
-                      </button>
-                      <button mat-button type="button" (click)="cancelEditing()" [disabled]="isSavingEdit()">Cancel</button>
-                    </div>
-                  </form>
-                } @else {
-                  <div class="task-card__heading">
-                    <h4>{{ taskItem.title }}</h4>
-                    <button
-                      mat-icon-button
-                      type="button"
-                      cdkDragHandle
-                      matTooltip="Drag task"
-                      aria-label="Drag task to another status"
-                      [disabled]="isTaskBusy(taskItem.id)"
-                    >
-                      <mat-icon>drag_indicator</mat-icon>
-                    </button>
-                  </div>
-
-                  <p class="description" [class.description--empty]="!taskItem.description">
-                    {{ taskItem.description || 'No description provided.' }}
-                  </p>
-
-                  <mat-form-field class="status-field" appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Status</mat-label>
-                    <mat-select
-                      [value]="taskItem.status"
-                      [disabled]="isTaskBusy(taskItem.id)"
-                      (selectionChange)="updateStatus(taskItem, $event.value)"
-                    >
-                      @for (status of taskItemStatuses; track status) {
-                        <mat-option [value]="status">{{ statusLabels[status] }}</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
-
-                  @if (isStatusUpdating(taskItem.id)) {
-                    <div class="operation-status" role="status"><mat-spinner diameter="16" /> Updating status…</div>
-                  } @else if (statusUpdateErrors()[taskItem.id]) {
-                    <p class="operation-error" role="alert">{{ statusUpdateErrors()[taskItem.id] }}</p>
-                  }
-
-                  <div class="task-card__footer">
-                    <span>Created {{ taskItem.createdAtUtc | date: 'mediumDate' }}</span>
-                    <div class="task-actions">
-                      <button
-                        mat-icon-button
-                        type="button"
-                        matTooltip="Edit task"
-                        aria-label="Edit task"
-                        (click)="startEditing(taskItem)"
-                        [disabled]="isTaskBusy(taskItem.id)"
-                      ><mat-icon>edit</mat-icon></button>
-                      <button
-                        mat-icon-button
-                        type="button"
-                        class="delete-button"
-                        matTooltip="Delete task"
-                        aria-label="Delete task"
-                        (click)="confirmDelete(taskItem)"
-                        [disabled]="isTaskBusy(taskItem.id)"
-                      ><mat-icon>delete</mat-icon></button>
-                    </div>
-                  </div>
-
-                  @if (deleteErrors()[taskItem.id]) {
-                    <p class="operation-error" role="alert">{{ deleteErrors()[taskItem.id] }}</p>
-                  }
-                }
-              </mat-card>
+              <app-task-card
+                [taskItem]="taskItem"
+                [isStatusUpdating]="isStatusUpdating(taskItem.id)"
+                [statusError]="statusUpdateErrors()[taskItem.id] ?? null"
+                [isDeleting]="isDeleting(taskItem.id)"
+                [deleteError]="deleteErrors()[taskItem.id] ?? null"
+                (editRequested)="openEditDialog(taskItem)"
+                (deleteRequested)="confirmDelete(taskItem)"
+              />
             } @empty {
               <div class="column-empty">
                 <mat-icon aria-hidden="true">space_dashboard</mat-icon>
