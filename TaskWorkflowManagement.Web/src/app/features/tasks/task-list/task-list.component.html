@@ -1,139 +1,191 @@
 <app-task-create-form (taskCreated)="loadTaskItems()" />
 
-<section class="task-list" aria-labelledby="task-list-heading">
-  <div class="task-list__header">
+<section class="workflow" aria-labelledby="workflow-heading">
+  <div class="workflow__toolbar">
     <div>
-      <h2 id="task-list-heading">Current Tasks</h2>
-      <p>Loaded from the backend TaskItem API.</p>
+      <h2 id="workflow-heading">Your workflow</h2>
+      <p>Drag cards between columns or choose a status from the card.</p>
     </div>
 
-    <button type="button" (click)="loadTaskItems()" [disabled]="isLoading()">
-      Refresh
-    </button>
+    <div class="workflow__controls">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Filter tasks</mat-label>
+        <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+        <input matInput [formControl]="filterControl" placeholder="Title or description" />
+        @if (filterControl.value) {
+          <button mat-icon-button matSuffix type="button" aria-label="Clear filter" (click)="filterControl.reset()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <button mat-stroked-button type="button" (click)="loadTaskItems()" [disabled]="isLoading()">
+        <mat-icon aria-hidden="true">refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
   </div>
 
   @if (isLoading()) {
-    <p class="state-message">Loading task items...</p>
+    <mat-card class="state-card" appearance="outlined">
+      <mat-spinner diameter="34" />
+      <div><strong>Loading tasks</strong><span>Getting the latest workflow from the API…</span></div>
+    </mat-card>
   } @else if (errorMessage()) {
-    <p class="state-message state-message--error">{{ errorMessage() }}</p>
-  } @else if (!hasTaskItems()) {
-    <p class="state-message">No task items found yet.</p>
+    <mat-card class="state-card state-card--error" appearance="outlined">
+      <mat-icon aria-hidden="true">cloud_off</mat-icon>
+      <div><strong>Tasks could not be loaded</strong><span>{{ errorMessage() }}</span></div>
+      <button mat-stroked-button type="button" (click)="loadTaskItems()">Try again</button>
+    </mat-card>
+  } @else if (taskItems().length === 0) {
+    <mat-card class="state-card" appearance="outlined">
+      <mat-icon aria-hidden="true">inventory_2</mat-icon>
+      <div><strong>Your board is empty</strong><span>Create your first task to start the workflow.</span></div>
+    </mat-card>
+  } @else if (filteredTaskItems().length === 0) {
+    <mat-card class="state-card" appearance="outlined">
+      <mat-icon aria-hidden="true">search_off</mat-icon>
+      <div><strong>No matching tasks</strong><span>Try a different title or description keyword.</span></div>
+      <button mat-button type="button" (click)="filterControl.reset()">Clear filter</button>
+    </mat-card>
   } @else {
-    <ul class="task-items">
-      @for (taskItem of taskItems(); track taskItem.id) {
-        <li class="task-item">
-          @if (editingTaskItemId() === taskItem.id) {
-            <form class="edit-form" [formGroup]="editForm" (ngSubmit)="saveEdit(taskItem)">
-              <div class="field">
-                <label [for]="'edit-task-title-' + taskItem.id">Title</label>
-                <input
-                  [id]="'edit-task-title-' + taskItem.id"
-                  type="text"
-                  formControlName="title"
-                  [attr.maxlength]="titleMaxLength"
-                  [attr.aria-invalid]="editForm.controls.title.invalid && editForm.controls.title.touched"
-                />
+    <div class="board" cdkDropListGroup>
+      @for (column of boardColumns; track column.status) {
+        <section class="board-column" [attr.aria-labelledby]="columnId(column.status) + '-heading'">
+          <header class="board-column__header">
+            <div class="board-column__title">
+              <mat-icon aria-hidden="true">{{ column.icon }}</mat-icon>
+              <div>
+                <h3 [id]="columnId(column.status) + '-heading'">{{ column.title }}</h3>
+                <p>{{ column.description }}</p>
+              </div>
+            </div>
+            <span class="task-count" [attr.aria-label]="tasksForStatus(column.status).length + ' tasks'">
+              {{ tasksForStatus(column.status).length }}
+            </span>
+          </header>
 
-                @if (editForm.controls.title.invalid && editForm.controls.title.touched) {
-                  <p class="field-error">
-                    @if (editForm.controls.title.hasError('maxlength')) {
-                      Title must be {{ titleMaxLength }} characters or fewer.
-                    } @else {
-                      Title is required.
+          <div
+            class="task-drop-list"
+            cdkDropList
+            [id]="columnId(column.status)"
+            [cdkDropListData]="tasksForStatus(column.status)"
+            [cdkDropListConnectedTo]="columnIds"
+            (cdkDropListDropped)="dropTask($event, column.status)"
+          >
+            @for (taskItem of tasksForStatus(column.status); track taskItem.id) {
+              <mat-card
+                class="task-card"
+                appearance="outlined"
+                cdkDrag
+                [cdkDragData]="taskItem"
+                [cdkDragDisabled]="isTaskBusy(taskItem.id) || editingTaskItemId() === taskItem.id"
+              >
+                <div class="task-card__placeholder" *cdkDragPlaceholder></div>
+
+                @if (editingTaskItemId() === taskItem.id) {
+                  <form class="edit-form" [formGroup]="editForm" (ngSubmit)="saveEdit(taskItem)">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Title</mat-label>
+                      <input matInput formControlName="title" [maxlength]="titleMaxLength" />
+                      @if (editForm.controls.title.hasError('maxlength')) {
+                        <mat-error>Maximum {{ titleMaxLength }} characters.</mat-error>
+                      } @else if (editForm.controls.title.invalid) {
+                        <mat-error>Title is required.</mat-error>
+                      }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                      <mat-label>Description</mat-label>
+                      <textarea matInput formControlName="description" rows="3"></textarea>
+                    </mat-form-field>
+
+                    @if (editErrorMessage()) {
+                      <p class="operation-error" role="alert">{{ editErrorMessage() }}</p>
                     }
+
+                    <div class="task-actions">
+                      <button mat-flat-button type="submit" [disabled]="isSavingEdit()">
+                        @if (isSavingEdit()) { Saving… } @else { Save }
+                      </button>
+                      <button mat-button type="button" (click)="cancelEditing()" [disabled]="isSavingEdit()">Cancel</button>
+                    </div>
+                  </form>
+                } @else {
+                  <div class="task-card__heading">
+                    <h4>{{ taskItem.title }}</h4>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      cdkDragHandle
+                      matTooltip="Drag task"
+                      aria-label="Drag task to another status"
+                      [disabled]="isTaskBusy(taskItem.id)"
+                    >
+                      <mat-icon>drag_indicator</mat-icon>
+                    </button>
+                  </div>
+
+                  <p class="description" [class.description--empty]="!taskItem.description">
+                    {{ taskItem.description || 'No description provided.' }}
                   </p>
-                }
-              </div>
 
-              <div class="field">
-                <label [for]="'edit-task-description-' + taskItem.id">
-                  Description <span>(optional)</span>
-                </label>
-                <textarea
-                  [id]="'edit-task-description-' + taskItem.id"
-                  formControlName="description"
-                  rows="3"
-                ></textarea>
-              </div>
+                  <mat-form-field class="status-field" appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Status</mat-label>
+                    <mat-select
+                      [value]="taskItem.status"
+                      [disabled]="isTaskBusy(taskItem.id)"
+                      (selectionChange)="updateStatus(taskItem, $event.value)"
+                    >
+                      @for (status of taskItemStatuses; track status) {
+                        <mat-option [value]="status">{{ statusLabels[status] }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
 
-              @if (editErrorMessage()) {
-                <p class="operation-error" role="alert">{{ editErrorMessage() }}</p>
-              }
-
-              <div class="task-actions">
-                <button type="submit" [disabled]="isSavingEdit()">
-                  {{ isSavingEdit() ? 'Saving...' : 'Save' }}
-                </button>
-                <button
-                  type="button"
-                  class="button--secondary"
-                  (click)="cancelEditing()"
-                  [disabled]="isSavingEdit()"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          } @else {
-            <div class="task-item__title-row">
-              <h3>{{ taskItem.title }}</h3>
-              <div class="status-control">
-                <label [for]="'task-status-' + taskItem.id">Status</label>
-                <select
-                  [id]="'task-status-' + taskItem.id"
-                  [disabled]="isStatusUpdating(taskItem.id) || isDeleting(taskItem.id) || isSavingEdit()"
-                  (change)="updateStatus(taskItem, $event)"
-                >
-                  @for (status of taskItemStatuses; track status) {
-                    <option [value]="status" [selected]="status === taskItem.status">
-                      {{ status }}
-                    </option>
+                  @if (isStatusUpdating(taskItem.id)) {
+                    <div class="operation-status" role="status"><mat-spinner diameter="16" /> Updating status…</div>
+                  } @else if (statusUpdateErrors()[taskItem.id]) {
+                    <p class="operation-error" role="alert">{{ statusUpdateErrors()[taskItem.id] }}</p>
                   }
-                </select>
+
+                  <div class="task-card__footer">
+                    <span>Created {{ taskItem.createdAtUtc | date: 'mediumDate' }}</span>
+                    <div class="task-actions">
+                      <button
+                        mat-icon-button
+                        type="button"
+                        matTooltip="Edit task"
+                        aria-label="Edit task"
+                        (click)="startEditing(taskItem)"
+                        [disabled]="isTaskBusy(taskItem.id)"
+                      ><mat-icon>edit</mat-icon></button>
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="delete-button"
+                        matTooltip="Delete task"
+                        aria-label="Delete task"
+                        (click)="confirmDelete(taskItem)"
+                        [disabled]="isTaskBusy(taskItem.id)"
+                      ><mat-icon>delete</mat-icon></button>
+                    </div>
+                  </div>
+
+                  @if (deleteErrors()[taskItem.id]) {
+                    <p class="operation-error" role="alert">{{ deleteErrors()[taskItem.id] }}</p>
+                  }
+                }
+              </mat-card>
+            } @empty {
+              <div class="column-empty">
+                <mat-icon aria-hidden="true">space_dashboard</mat-icon>
+                <span>Drop a task here</span>
               </div>
-            </div>
-
-            @if (isStatusUpdating(taskItem.id)) {
-              <p class="status-message" role="status">Updating status...</p>
-            } @else if (statusUpdateErrors()[taskItem.id]) {
-              <p class="status-message status-message--error" role="alert">
-                {{ statusUpdateErrors()[taskItem.id] }}
-              </p>
             }
-
-            @if (taskItem.description) {
-              <p class="description">{{ taskItem.description }}</p>
-            } @else {
-              <p class="description description--empty">No description provided.</p>
-            }
-
-            <div class="task-actions">
-              <button
-                type="button"
-                class="button--secondary"
-                (click)="startEditing(taskItem)"
-                [disabled]="isDeleting(taskItem.id) || isSavingEdit()"
-              >
-                Edit
-              </button>
-              <button
-                type="button"
-                class="button--danger"
-                (click)="deleteTaskItem(taskItem)"
-                [disabled]="isDeleting(taskItem.id) || isSavingEdit()"
-              >
-                {{ isDeleting(taskItem.id) ? 'Deleting...' : 'Delete' }}
-              </button>
-            </div>
-
-            @if (deleteErrors()[taskItem.id]) {
-              <p class="operation-error" role="alert">{{ deleteErrors()[taskItem.id] }}</p>
-            }
-          }
-
-          <p class="created-date">Created {{ taskItem.createdAtUtc | date: 'medium' }}</p>
-        </li>
+          </div>
+        </section>
       }
-    </ul>
+    </div>
   }
 </section>

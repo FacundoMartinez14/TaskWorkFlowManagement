@@ -1,11 +1,15 @@
 .app-shell {
-  width: min(960px, calc(100% - 32px));
+  width: min(1440px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 40px 0;
+  padding: 44px 0 64px;
 }
 
 .app-header {
-  margin-bottom: 24px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
 }
 
 .eyebrow {
@@ -29,4 +33,29 @@ h1 {
   margin: 12px 0 0;
   color: #475569;
   line-height: 1.6;
+}
+
+.api-badge {
+  flex: 0 0 auto;
+  border: 1px solid #c8d1e1;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #40516e;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 8px 12px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    width: min(100% - 24px, 1440px);
+    padding-top: 28px;
+  }
+
+  .app-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }

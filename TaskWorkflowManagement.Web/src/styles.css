@@ -1,3 +1,5 @@
+@import '@angular/material/prebuilt-themes/azure-blue.css';
+
 * {
   box-sizing: border-box;
 }
@@ -9,11 +11,21 @@ html {
 body {
   min-height: 100%;
   margin: 0;
-  background: #f8fafc;
-  color: #0f172a;
-  font-family: Arial, Helvetica, sans-serif;
+  background: #f4f6fb;
+  color: #172033;
+  font-family: 'Inter', Arial, sans-serif;
 }
 
 button {
   font: inherit;
+}
+
+.success-snackbar {
+  --mdc-snackbar-container-color: #176b45;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+}
+
+.error-snackbar {
+  --mdc-snackbar-container-color: #b3261e;
+  --mdc-snackbar-supporting-text-color: #ffffff;
 }

@@ -1,48 +1,41 @@
-<section class="task-form" aria-labelledby="task-form-heading">
-  <div class="task-form__header">
-    <h2 id="task-form-heading">Create a Task</h2>
-    <p>Add a task to the current workflow.</p>
-  </div>
+<mat-card class="task-form" appearance="outlined">
+  <mat-card-header>
+    <mat-icon mat-card-avatar aria-hidden="true">add_task</mat-icon>
+    <mat-card-title>Create a task</mat-card-title>
+    <mat-card-subtitle>Add a new item to the To Do column.</mat-card-subtitle>
+  </mat-card-header>
 
-  <form [formGroup]="taskForm" (ngSubmit)="submit()">
-    <div class="field">
-      <label for="task-title">Title</label>
-      <input
-        id="task-title"
-        type="text"
-        formControlName="title"
-        [attr.maxlength]="titleMaxLength"
-        autocomplete="off"
-        [attr.aria-invalid]="taskForm.controls.title.invalid && taskForm.controls.title.touched"
-        [attr.aria-describedby]="
-          taskForm.controls.title.invalid && taskForm.controls.title.touched
-            ? 'task-title-error'
-            : null
-        "
-      />
+  <mat-card-content>
+    <form [formGroup]="taskForm" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline">
+        <mat-label>Title</mat-label>
+        <input matInput formControlName="title" [maxlength]="titleMaxLength" autocomplete="off" />
+        <mat-hint align="end">{{ taskForm.controls.title.value.length }}/{{ titleMaxLength }}</mat-hint>
+        @if (taskForm.controls.title.hasError('maxlength')) {
+          <mat-error>Title must be {{ titleMaxLength }} characters or fewer.</mat-error>
+        } @else if (taskForm.controls.title.invalid) {
+          <mat-error>Title is required.</mat-error>
+        }
+      </mat-form-field>
 
-      @if (taskForm.controls.title.invalid && taskForm.controls.title.touched) {
-        <p id="task-title-error" class="field-error">
-          @if (taskForm.controls.title.hasError('maxlength')) {
-            Title must be {{ titleMaxLength }} characters or fewer.
-          } @else {
-            Title is required.
-          }
-        </p>
+      <mat-form-field appearance="outline">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description" rows="3"></textarea>
+        <mat-hint>Optional</mat-hint>
+      </mat-form-field>
+
+      @if (errorMessage()) {
+        <p class="submit-error" role="alert"><mat-icon aria-hidden="true">error</mat-icon>{{ errorMessage() }}</p>
       }
-    </div>
 
-    <div class="field">
-      <label for="task-description">Description <span>(optional)</span></label>
-      <textarea id="task-description" formControlName="description" rows="4"></textarea>
-    </div>
-
-    @if (errorMessage()) {
-      <p class="submit-error" role="alert">{{ errorMessage() }}</p>
-    }
-
-    <button type="submit" [disabled]="isSubmitting()">
-      {{ isSubmitting() ? 'Creating...' : 'Create Task' }}
-    </button>
-  </form>
-</section>
+      <button mat-flat-button type="submit" [disabled]="isSubmitting()">
+        @if (isSubmitting()) {
+          <mat-spinner diameter="18" />
+        } @else {
+          <mat-icon aria-hidden="true">add</mat-icon>
+        }
+        {{ isSubmitting() ? 'Creating…' : 'Create task' }}
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>
