@@ -30,7 +30,7 @@
         } @else {
           <mat-icon aria-hidden="true">refresh</mat-icon>
         }
-        {{ isRefreshing() ? 'Refreshing…' : 'Refresh' }}
+        {{ isRefreshing() ? 'Refreshing...' : 'Refresh' }}
       </button>
     </div>
   </div>
@@ -38,7 +38,7 @@
   @if (isLoading()) {
     <mat-card class="state-card" appearance="outlined">
       <mat-spinner diameter="34" />
-      <div><strong>Loading tasks</strong><span>Getting the latest workflow from the API…</span></div>
+      <div><strong>Loading tasks</strong><span>Getting the latest workflow from the API...</span></div>
     </mat-card>
   } @else if (errorMessage()) {
     <mat-card class="state-card state-card--error" appearance="outlined">

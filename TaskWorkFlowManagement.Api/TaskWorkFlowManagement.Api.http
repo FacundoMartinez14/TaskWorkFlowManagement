@@ -1,6 +1,51 @@
 @TaskWorkFlowManagement.Api_HostAddress = http://localhost:5095
 
-GET {{TaskWorkFlowManagement.Api_HostAddress}}/weatherforecast/
+GET {{TaskWorkFlowManagement.Api_HostAddress}}/api/health
 Accept: application/json
+
+###
+
+GET {{TaskWorkFlowManagement.Api_HostAddress}}/api/tasks
+Accept: application/json
+
+###
+
+POST {{TaskWorkFlowManagement.Api_HostAddress}}/api/tasks
+Content-Type: application/json
+
+{
+  "title": "Review portfolio README",
+  "description": "Keep the documentation aligned with the current MVP."
+}
+
+###
+
+@TaskItemId = 00000000-0000-0000-0000-000000000000
+
+GET {{TaskWorkFlowManagement.Api_HostAddress}}/api/tasks/{{TaskItemId}}
+Accept: application/json
+
+###
+
+PUT {{TaskWorkFlowManagement.Api_HostAddress}}/api/tasks/{{TaskItemId}}
+Content-Type: application/json
+
+{
+  "title": "Review portfolio README",
+  "description": "Update the documentation and verify the build."
+}
+
+###
+
+PATCH {{TaskWorkFlowManagement.Api_HostAddress}}/api/tasks/{{TaskItemId}}/status
+Content-Type: application/json
+
+{
+  "status": "InProgress"
+}
+
+###
+
+DELETE {{TaskWorkFlowManagement.Api_HostAddress}}/api/tasks/{{TaskItemId}}
 
 ###

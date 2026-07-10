@@ -13,7 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { Observable, forkJoin } from 'rxjs';
+import { concatMap, of } from 'rxjs';
 
 import {
   TASK_ITEM_TITLE_MAX_LENGTH,
@@ -86,17 +86,11 @@ export class TaskEditDialogComponent {
       ...updateRequest,
       status: formValue.status
     };
-    const updates: Observable<void>[] = [];
+    const detailsChanged =
+      updateRequest.title !== this.data.title || updateRequest.description !== this.data.description;
+    const statusChanged = formValue.status !== this.data.status;
 
-    if (updateRequest.title !== this.data.title || updateRequest.description !== this.data.description) {
-      updates.push(this.taskItemsService.updateTaskItem(this.data.id, updateRequest));
-    }
-
-    if (formValue.status !== this.data.status) {
-      updates.push(this.taskItemsService.updateTaskItemStatus(this.data.id, { status: formValue.status }));
-    }
-
-    if (updates.length === 0) {
+    if (!detailsChanged && !statusChanged) {
       this.dialogRef.close(this.data);
       return;
     }
@@ -104,7 +98,14 @@ export class TaskEditDialogComponent {
     this.isSaving.set(true);
     this.errorMessage.set(null);
 
-    forkJoin(updates).subscribe({
+    const saveDetails$ = detailsChanged
+      ? this.taskItemsService.updateTaskItem(this.data.id, updateRequest)
+      : of(undefined);
+    const saveStatus$ = statusChanged
+      ? this.taskItemsService.updateTaskItemStatus(this.data.id, { status: formValue.status })
+      : of(undefined);
+
+    saveDetails$.pipe(concatMap(() => saveStatus$)).subscribe({
       next: () => this.dialogRef.close(updatedTaskItem),
       error: () => {
         this.errorMessage.set('Unable to save all task changes. Please try again.');
