@@ -4,7 +4,7 @@
 
 TaskWorkFlowManagement is a full stack portfolio project.
 
-The goal is to build a modern task and workflow management application to demonstrate full stack development skills for job search purposes.
+The goal is to maintain and polish a modern task and workflow management application that demonstrates practical full stack development skills.
 
 Backend:
 
@@ -15,6 +15,8 @@ Frontend:
 
 - Angular
 - TypeScript
+- Angular Material
+- Angular CDK Drag & Drop
 
 Version control:
 
@@ -23,9 +25,32 @@ Version control:
 
 ## Current project stage
 
-The project is in its initial setup phase.
+The project is a functional full-stack MVP.
 
-Keep the architecture simple and avoid adding unnecessary complexity too early.
+Completed baseline capabilities include:
+
+- ASP.NET Core Web API
+- PostgreSQL persistence with EF Core
+- TaskItem CRUD
+- Soft delete
+- Angular frontend
+- Kanban-style task board
+- Drag and drop between workflow columns
+- Keyword filtering
+- README updates
+- Backend and frontend build validation
+
+Future work should prioritize polish, documentation accuracy, screenshots or demo readiness, deployment decisions, and only high-value improvements. Keep the architecture simple and avoid adding complexity unless it solves a clear current problem.
+
+## Skills workflow
+
+- Use the relevant project skills in `skills/` before making changes.
+- Use `scope-control` when evaluating new features, dependencies, architecture, or deployment ideas.
+- Use `portfolio-employability` for recruiter-facing polish, README accuracy, screenshots, demo notes, and prioritization.
+- Use `git-discipline` for branch, commit, pull request, and changed-file review decisions.
+- Use `backend-api`, `rest-api-design`, and `ef-core-data-access` for backend/API/data changes.
+- Use `angular-frontend` for Angular, TypeScript, service, component, form, and UI behavior changes.
+- If a task spans multiple areas, keep the implementation as a small vertical slice and explain the tradeoffs.
 
 ## General rules
 
@@ -37,12 +62,15 @@ Keep the architecture simple and avoid adding unnecessary complexity too early.
 - Before changing code, inspect the relevant files.
 - If the task is ambiguous, propose a short plan before editing.
 - Explain the reason for meaningful changes.
+- Keep guidance and documentation accurate to the current implementation; do not describe planned work as completed.
+- Do not turn agent guidance into portfolio marketing copy.
 
 ## Backend rules
 
 - Follow standard .NET Web API conventions.
 - Keep controllers simple.
-- Do not introduce service layers, repositories, database access, authentication, authorization, Docker, or external dependencies unless explicitly requested.
+- Use the existing PostgreSQL/EF Core persistence approach.
+- Do not introduce new service layers, repositories, authentication, authorization, Docker, or external dependencies unless explicitly requested or clearly justified.
 - Use DTOs when creating API contracts.
 - Do not expose internal domain models directly once the domain grows.
 - Prefer clear and boring code over clever abstractions.
@@ -58,11 +86,14 @@ dotnet build
 - Follow Angular conventions.
 - Keep components focused and readable.
 - Use strongly typed TypeScript.
-- Do not add UI libraries, state management libraries, or complex architecture unless explicitly requested.
+- Use the existing Angular Material and Angular CDK patterns where they already fit.
+- Do not add new UI libraries, state management libraries, or complex architecture unless explicitly requested or clearly justified.
+- Preserve simple loading and error states for API-backed UI flows.
 
 Before considering frontend work complete, run:
 
 ```bash
+cd TaskWorkflowManagement.Web
 npm install
 npm run build
 ```
