@@ -4,7 +4,6 @@
   cdkDrag
   [cdkDragData]="taskItem()"
   [cdkDragDisabled]="isBusy()"
-  (click)="requestEdit()"
 >
   <div class="task-card__placeholder" *cdkDragPlaceholder></div>
 
@@ -27,38 +26,50 @@
     {{ taskItem().description || 'No description provided.' }}
   </p>
 
+  <div class="task-card__metadata">
+    <mat-icon aria-hidden="true">calendar_today</mat-icon>
+    <span>Created {{ taskItem().createdAtUtc | date: 'mediumDate' }}</span>
+  </div>
+
   @if (isStatusUpdating()) {
     <div class="operation-status" role="status"><mat-spinner diameter="16" /> Updating status…</div>
   } @else if (statusError()) {
     <p class="operation-error" role="alert">{{ statusError() }}</p>
   }
 
-  <div class="task-card__footer">
-    <span>Created {{ taskItem().createdAtUtc | date: 'mediumDate' }}</span>
-    <div class="task-actions">
-      <button
-        mat-icon-button
-        type="button"
-        matTooltip="Edit task"
-        aria-label="Edit task"
-        (click)="$event.stopPropagation(); requestEdit()"
-        [disabled]="isBusy()"
-      ><mat-icon>edit</mat-icon></button>
-      <button
-        mat-icon-button
-        type="button"
-        class="delete-button"
-        matTooltip="Delete task"
-        aria-label="Delete task"
-        (click)="requestDelete($event)"
-        [disabled]="isBusy()"
-      ><mat-icon>delete</mat-icon></button>
-    </div>
-  </div>
-
   @if (isDeleting()) {
     <div class="operation-status" role="status"><mat-spinner diameter="16" /> Deleting task…</div>
   } @else if (deleteError()) {
     <p class="operation-error" role="alert">{{ deleteError() }}</p>
   }
+
+  <div class="task-card__actions">
+    <button
+      mat-stroked-button
+      type="button"
+      [matMenuTriggerFor]="taskActions"
+      [disabled]="isBusy()"
+      [attr.aria-label]="'Actions for ' + taskItem().title"
+    >
+      <mat-icon aria-hidden="true">more_horiz</mat-icon>
+      Actions
+    </button>
+  </div>
+
+  <mat-menu #taskActions="matMenu">
+    <button mat-menu-item type="button" (click)="requestEdit()" [disabled]="isBusy()">
+      <mat-icon aria-hidden="true">edit</mat-icon>
+      <span>Edit</span>
+    </button>
+    <button
+      mat-menu-item
+      type="button"
+      class="delete-button"
+      (click)="requestDelete()"
+      [disabled]="isBusy()"
+    >
+      <mat-icon aria-hidden="true">delete</mat-icon>
+      <span>Delete</span>
+    </button>
+  </mat-menu>
 </mat-card>

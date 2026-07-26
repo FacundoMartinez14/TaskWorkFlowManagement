@@ -26,6 +26,7 @@ import { TaskItemsService } from '../../../services/task-items.service';
   styleUrl: './task-create-form.component.css'
 })
 export class TaskCreateFormComponent {
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly formBuilder = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
   private readonly taskItemsService = inject(TaskItemsService);
@@ -44,6 +45,42 @@ export class TaskCreateFormComponent {
   });
 
   readonly taskCreated = output<TaskItem>();
+
+  public focusTitle(): void {
+    const hostElement = this.elementRef.nativeElement;
+    const titleInput = this.titleInput().nativeElement;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const hostBounds = hostElement.getBoundingClientRect();
+    const needsScroll = hostBounds.top < 0 || hostBounds.bottom > window.innerHeight;
+
+    hostElement.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'center'
+    });
+
+    if (reduceMotion || !needsScroll) {
+      titleInput.focus({ preventScroll: true });
+      return;
+    }
+
+    let hasFocused = false;
+    let fallbackTimer: number | undefined;
+    const focusAfterScroll = (): void => {
+      if (hasFocused) {
+        return;
+      }
+
+      hasFocused = true;
+      window.removeEventListener('scrollend', focusAfterScroll);
+      if (fallbackTimer !== undefined) {
+        window.clearTimeout(fallbackTimer);
+      }
+      titleInput.focus({ preventScroll: true });
+    };
+
+    window.addEventListener('scrollend', focusAfterScroll, { once: true });
+    fallbackTimer = window.setTimeout(focusAfterScroll, 600);
+  }
 
   protected submit(): void {
     if (this.taskForm.invalid || this.isSubmitting()) {

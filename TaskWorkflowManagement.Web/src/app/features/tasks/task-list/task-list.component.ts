@@ -1,5 +1,5 @@
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -47,6 +47,7 @@ export class TaskListComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly taskItemsService = inject(TaskItemsService);
+  private readonly createForm = viewChild.required(TaskCreateFormComponent);
 
   protected readonly boardColumns: readonly BoardColumn[] = [
     {
@@ -100,6 +101,10 @@ export class TaskListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTaskItems();
+  }
+
+  public focusCreationForm(): void {
+    this.createForm().focusTitle();
   }
 
   protected loadTaskItems(): void {
@@ -182,6 +187,10 @@ export class TaskListComponent implements OnInit {
   }
 
   protected confirmDelete(taskItem: TaskItem): void {
+    if (this.isTaskBusy(taskItem.id)) {
+      return;
+    }
+
     this.dialog.open(TaskDeleteDialogComponent, {
       data: { title: taskItem.title },
       maxWidth: '440px',

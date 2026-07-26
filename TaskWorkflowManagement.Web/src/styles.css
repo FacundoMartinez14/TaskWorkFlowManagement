@@ -7,6 +7,10 @@
 html {
   min-height: 100%;
   --app-font-family: 'Inter', Arial, sans-serif;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
   --mat-sys-body-large-font: var(--app-font-family);
   --mat-sys-body-medium-font: var(--app-font-family);
   --mat-sys-body-small-font: var(--app-font-family);
