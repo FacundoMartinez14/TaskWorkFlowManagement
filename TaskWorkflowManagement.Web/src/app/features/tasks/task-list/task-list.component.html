@@ -4,7 +4,7 @@
   <div class="workflow__toolbar">
     <div>
       <h2 id="workflow-heading">Your workflow</h2>
-      <p>Drag cards between columns or open a card to edit its details and status.</p>
+      <p>Drag cards between columns or use a card's actions to update its details.</p>
     </div>
 
     <div class="workflow__controls">
@@ -50,11 +50,15 @@
     <mat-card class="state-card" appearance="outlined">
       <mat-icon aria-hidden="true">inventory_2</mat-icon>
       <div><strong>Your board is empty</strong><span>Create your first task to start the workflow.</span></div>
+      <button mat-flat-button type="button" (click)="focusCreationForm()">Create first task</button>
     </mat-card>
   } @else if (filteredTaskItems().length === 0) {
     <mat-card class="state-card" appearance="outlined">
       <mat-icon aria-hidden="true">search_off</mat-icon>
-      <div><strong>No matching tasks</strong><span>Try a different title or description keyword.</span></div>
+      <div>
+        <strong>No tasks match “{{ filterControl.value }}”</strong>
+        <span>Try a different title or description keyword.</span>
+      </div>
       <button mat-button type="button" (click)="filterControl.reset()">Clear filter</button>
     </mat-card>
   } @else {
