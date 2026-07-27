@@ -1,6 +1,8 @@
 <mat-card
   class="task-card"
   appearance="outlined"
+  [id]="'task-card-' + taskItem().id"
+  tabindex="-1"
   cdkDrag
   [cdkDragData]="taskItem()"
   [cdkDragDisabled]="isBusy()"
@@ -49,6 +51,7 @@
       type="button"
       [matMenuTriggerFor]="taskActions"
       [disabled]="isBusy()"
+      [id]="'task-actions-' + taskItem().id"
       [attr.aria-label]="'Actions for ' + taskItem().title"
     >
       <mat-icon aria-hidden="true">more_horiz</mat-icon>
@@ -57,6 +60,15 @@
   </div>
 
   <mat-menu #taskActions="matMenu">
+    <button
+      mat-menu-item
+      type="button"
+      [matMenuTriggerFor]="moveMenu"
+      [disabled]="isBusy() || moveTargets().length === 0"
+    >
+      <mat-icon aria-hidden="true">drive_file_move</mat-icon>
+      <span>Move to…</span>
+    </button>
     <button mat-menu-item type="button" (click)="requestEdit()" [disabled]="isBusy()">
       <mat-icon aria-hidden="true">edit</mat-icon>
       <span>Edit</span>
@@ -71,5 +83,19 @@
       <mat-icon aria-hidden="true">delete</mat-icon>
       <span>Delete</span>
     </button>
+  </mat-menu>
+
+  <mat-menu #moveMenu="matMenu">
+    @for (option of moveTargets(); track option.status) {
+      <button
+        mat-menu-item
+        type="button"
+        (click)="requestMove(option.status)"
+        [disabled]="isBusy()"
+      >
+        <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+        <span>{{ option.label }}</span>
+      </button>
+    }
   </mat-menu>
 </mat-card>

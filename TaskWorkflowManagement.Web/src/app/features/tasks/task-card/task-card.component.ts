@@ -9,6 +9,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { TaskItem } from '../../../models/task-item';
+import { TaskItemStatus } from '../../../models/task-item-status';
+
+export interface TaskStatusOption {
+  status: TaskItemStatus;
+  label: string;
+}
 
 @Component({
   selector: 'app-task-card',
@@ -27,6 +33,7 @@ import { TaskItem } from '../../../models/task-item';
 })
 export class TaskCardComponent {
   readonly taskItem = input.required<TaskItem>();
+  readonly statusOptions = input.required<readonly TaskStatusOption[]>();
   readonly isStatusUpdating = input(false);
   readonly statusError = input<string | null>(null);
   readonly isDeleting = input(false);
@@ -34,8 +41,12 @@ export class TaskCardComponent {
 
   readonly editRequested = output<void>();
   readonly deleteRequested = output<void>();
+  readonly moveRequested = output<TaskItemStatus>();
 
   protected readonly isBusy = computed(() => this.isStatusUpdating() || this.isDeleting());
+  protected readonly moveTargets = computed(() =>
+    this.statusOptions().filter(option => option.status !== this.taskItem().status)
+  );
 
   protected requestEdit(): void {
     if (!this.isBusy()) {
@@ -46,6 +57,12 @@ export class TaskCardComponent {
   protected requestDelete(): void {
     if (!this.isBusy()) {
       this.deleteRequested.emit();
+    }
+  }
+
+  protected requestMove(status: TaskItemStatus): void {
+    if (!this.isBusy() && status !== this.taskItem().status) {
+      this.moveRequested.emit(status);
     }
   }
 }

@@ -1,3 +1,4 @@
+import { A11yModule } from '@angular/cdk/a11y';
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -14,15 +15,29 @@ export interface TaskDeleteDialogData {
 
 @Component({
   selector: 'app-task-delete-dialog',
-  imports: [MatButtonModule, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle],
+  imports: [
+    A11yModule,
+    MatButtonModule,
+    MatDialogActions,
+    MatDialogClose,
+    MatDialogContent,
+    MatDialogTitle
+  ],
   template: `
-    <h2 mat-dialog-title>Delete task?</h2>
+    <h2 mat-dialog-title>Delete “{{ data.title }}”?</h2>
     <mat-dialog-content>
-      <p>“{{ data.title }}” will be removed from the board.</p>
+      <p>This task will be removed from the board.</p>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button [mat-dialog-close]="false">Cancel</button>
-      <button mat-flat-button class="delete-confirm-button" [mat-dialog-close]="true">Delete task</button>
+      <button cdkFocusInitial mat-button type="button" [mat-dialog-close]="false">Cancel</button>
+      <button
+        mat-flat-button
+        type="button"
+        class="delete-confirm-button"
+        [mat-dialog-close]="true"
+      >
+        Delete task
+      </button>
     </mat-dialog-actions>
   `,
   styles: `

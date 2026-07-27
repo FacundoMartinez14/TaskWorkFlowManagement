@@ -1,5 +1,3 @@
-<app-task-create-form (taskCreated)="addTaskItem($event)" />
-
 <section class="workflow" aria-labelledby="workflow-heading">
   <div class="workflow__toolbar">
     <div>
@@ -50,7 +48,14 @@
     <mat-card class="state-card" appearance="outlined">
       <mat-icon aria-hidden="true">inventory_2</mat-icon>
       <div><strong>Your board is empty</strong><span>Create your first task to start the workflow.</span></div>
-      <button mat-flat-button type="button" (click)="focusCreationForm()">Create first task</button>
+      <button
+        id="empty-state-create-button"
+        mat-flat-button
+        type="button"
+        (click)="openCreateDialog()"
+      >
+        Create first task
+      </button>
     </mat-card>
   } @else if (filteredTaskItems().length === 0) {
     <mat-card class="state-card" appearance="outlined">
@@ -73,7 +78,7 @@
             <div class="board-column__title">
               <mat-icon aria-hidden="true">{{ column.icon }}</mat-icon>
               <div>
-                <h3 [id]="columnId(column.status) + '-heading'">{{ column.title }}</h3>
+                <h3 [id]="columnId(column.status) + '-heading'" tabindex="-1">{{ column.title }}</h3>
                 <p>{{ column.description }}</p>
               </div>
             </div>
@@ -94,12 +99,14 @@
             @for (taskItem of tasksForStatus(column.status); track taskItem.id) {
               <app-task-card
                 [taskItem]="taskItem"
+                [statusOptions]="statusOptions"
                 [isStatusUpdating]="isStatusUpdating(taskItem.id)"
                 [statusError]="statusUpdateErrors()[taskItem.id] ?? null"
                 [isDeleting]="isDeleting(taskItem.id)"
                 [deleteError]="deleteErrors()[taskItem.id] ?? null"
                 (editRequested)="openEditDialog(taskItem)"
                 (deleteRequested)="confirmDelete(taskItem)"
+                (moveRequested)="moveTask(taskItem, $event)"
               />
             } @empty {
               <div class="column-empty">

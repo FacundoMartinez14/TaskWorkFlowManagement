@@ -25,6 +25,12 @@ p {
   border-color: #8294d6;
 }
 
+.task-card:focus-visible {
+  border-color: #3454d1;
+  outline: 3px solid color-mix(in srgb, #3454d1 35%, transparent);
+  outline-offset: 2px;
+}
+
 .task-card__heading {
   display: flex;
   align-items: flex-start;
