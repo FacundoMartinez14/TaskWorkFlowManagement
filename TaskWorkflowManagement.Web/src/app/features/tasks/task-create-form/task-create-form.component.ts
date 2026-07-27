@@ -1,7 +1,13 @@
-import { Component, ElementRef, inject, output, signal, viewChild } from '@angular/core';
-import { FormBuilder, FormGroupDirective, ReactiveFormsModule, Validators } from '@angular/forms';
+import { A11yModule } from '@angular/cdk/a11y';
+import { Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
+import {
+  MatDialogActions,
+  MatDialogContent,
+  MatDialogRef,
+  MatDialogTitle
+} from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -14,8 +20,11 @@ import { TaskItemsService } from '../../../services/task-items.service';
 @Component({
   selector: 'app-task-create-form',
   imports: [
+    A11yModule,
     MatButtonModule,
-    MatCardModule,
+    MatDialogActions,
+    MatDialogContent,
+    MatDialogTitle,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -26,12 +35,10 @@ import { TaskItemsService } from '../../../services/task-items.service';
   styleUrl: './task-create-form.component.css'
 })
 export class TaskCreateFormComponent {
-  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly dialogRef = inject(MatDialogRef<TaskCreateFormComponent, TaskItem>);
   private readonly formBuilder = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
   private readonly taskItemsService = inject(TaskItemsService);
-  private readonly taskFormDirective = viewChild.required(FormGroupDirective);
-  private readonly titleInput = viewChild.required<ElementRef<HTMLInputElement>>('titleInput');
 
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
@@ -44,42 +51,10 @@ export class TaskCreateFormComponent {
     description: ['']
   });
 
-  readonly taskCreated = output<TaskItem>();
-
-  public focusTitle(): void {
-    const hostElement = this.elementRef.nativeElement;
-    const titleInput = this.titleInput().nativeElement;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const hostBounds = hostElement.getBoundingClientRect();
-    const needsScroll = hostBounds.top < 0 || hostBounds.bottom > window.innerHeight;
-
-    hostElement.scrollIntoView({
-      behavior: reduceMotion ? 'auto' : 'smooth',
-      block: 'center'
-    });
-
-    if (reduceMotion || !needsScroll) {
-      titleInput.focus({ preventScroll: true });
-      return;
+  protected cancel(): void {
+    if (!this.isSubmitting()) {
+      this.dialogRef.close();
     }
-
-    let hasFocused = false;
-    let fallbackTimer: number | undefined;
-    const focusAfterScroll = (): void => {
-      if (hasFocused) {
-        return;
-      }
-
-      hasFocused = true;
-      window.removeEventListener('scrollend', focusAfterScroll);
-      if (fallbackTimer !== undefined) {
-        window.clearTimeout(fallbackTimer);
-      }
-      titleInput.focus({ preventScroll: true });
-    };
-
-    window.addEventListener('scrollend', focusAfterScroll, { once: true });
-    fallbackTimer = window.setTimeout(focusAfterScroll, 600);
   }
 
   protected submit(): void {
@@ -96,19 +71,20 @@ export class TaskCreateFormComponent {
 
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
+    this.dialogRef.disableClose = true;
+    this.taskForm.disable();
 
     this.taskItemsService.createTaskItem(request).subscribe({
       next: taskItem => {
-        this.taskFormDirective().resetForm({ title: '', description: '' });
-        this.isSubmitting.set(false);
-        this.taskCreated.emit(taskItem);
         this.showSnackBar('Task created.', 'success-snackbar');
-        this.titleInput().nativeElement.focus();
+        this.dialogRef.close(taskItem);
       },
       error: () => {
         const message = 'Unable to create the task. Please try again.';
         this.errorMessage.set(message);
         this.isSubmitting.set(false);
+        this.dialogRef.disableClose = false;
+        this.taskForm.enable();
         this.showSnackBar(message, 'error-snackbar');
       }
     });

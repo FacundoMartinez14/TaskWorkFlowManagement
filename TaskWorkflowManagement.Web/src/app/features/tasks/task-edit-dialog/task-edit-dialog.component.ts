@@ -1,3 +1,4 @@
+import { A11yModule } from '@angular/cdk/a11y';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,6 +27,7 @@ import { TaskItemsService } from '../../../services/task-items.service';
 @Component({
   selector: 'app-task-edit-dialog',
   imports: [
+    A11yModule,
     MatButtonModule,
     MatDialogActions,
     MatDialogContent,
@@ -97,6 +99,8 @@ export class TaskEditDialogComponent {
 
     this.isSaving.set(true);
     this.errorMessage.set(null);
+    this.dialogRef.disableClose = true;
+    this.taskForm.disable();
 
     const saveDetails$ = detailsChanged
       ? this.taskItemsService.updateTaskItem(this.data.id, updateRequest)
@@ -110,6 +114,8 @@ export class TaskEditDialogComponent {
       error: () => {
         this.errorMessage.set('Unable to save all task changes. Please try again.');
         this.isSaving.set(false);
+        this.dialogRef.disableClose = false;
+        this.taskForm.enable();
       }
     });
   }

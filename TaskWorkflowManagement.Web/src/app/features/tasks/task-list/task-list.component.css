@@ -149,6 +149,12 @@ h3 {
   font-weight: 700;
 }
 
+h3:focus-visible {
+  border-radius: 4px;
+  outline: 3px solid color-mix(in srgb, #3454d1 35%, transparent);
+  outline-offset: 3px;
+}
+
 .board-column__header p {
   margin-top: 2px;
   color: #758098;

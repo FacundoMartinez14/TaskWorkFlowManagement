@@ -13,6 +13,11 @@ describe('TaskCardComponent', () => {
     status: TaskItemStatus.ToDo,
     createdAtUtc: '2026-07-26T12:00:00Z'
   };
+  const statusOptions = [
+    { status: TaskItemStatus.ToDo, label: 'To Do' },
+    { status: TaskItemStatus.InProgress, label: 'In Progress' },
+    { status: TaskItemStatus.Done, label: 'Done' }
+  ] as const;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -24,6 +29,7 @@ describe('TaskCardComponent', () => {
   it('emits edit and delete requests from its action handlers', () => {
     const fixture = TestBed.createComponent(TaskCardComponent);
     fixture.componentRef.setInput('taskItem', taskItem);
+    fixture.componentRef.setInput('statusOptions', statusOptions);
     const editRequested = jasmine.createSpy('editRequested');
     const deleteRequested = jasmine.createSpy('deleteRequested');
     fixture.componentInstance.editRequested.subscribe(editRequested);
@@ -44,6 +50,7 @@ describe('TaskCardComponent', () => {
   it('disables card operations while an operation is in progress', () => {
     const fixture = TestBed.createComponent(TaskCardComponent);
     fixture.componentRef.setInput('taskItem', taskItem);
+    fixture.componentRef.setInput('statusOptions', statusOptions);
     fixture.componentRef.setInput('isDeleting', true);
     fixture.detectChanges();
 
@@ -55,5 +62,46 @@ describe('TaskCardComponent', () => {
     expect(actionsButton.disabled).toBeTrue();
     expect(dragHandle.disabled).toBeTrue();
     expect(fixture.nativeElement.textContent).toContain('Deleting task');
+  });
+
+  it('offers every non-current status and emits the selected move', () => {
+    const fixture = TestBed.createComponent(TaskCardComponent);
+    fixture.componentRef.setInput('taskItem', taskItem);
+    fixture.componentRef.setInput('statusOptions', statusOptions);
+    const moveRequested = jasmine.createSpy('moveRequested');
+    fixture.componentInstance.moveRequested.subscribe(moveRequested);
+    fixture.detectChanges();
+    const moveHandlers = fixture.componentInstance as unknown as {
+      moveTargets(): readonly { status: TaskItemStatus; label: string }[];
+      requestMove(status: TaskItemStatus): void;
+    };
+
+    expect(moveHandlers.moveTargets().map(option => option.status)).toEqual([
+      TaskItemStatus.InProgress,
+      TaskItemStatus.Done
+    ]);
+
+    moveHandlers.requestMove(TaskItemStatus.InProgress);
+    expect(moveRequested).toHaveBeenCalledOnceWith(TaskItemStatus.InProgress);
+
+    moveHandlers.requestMove(TaskItemStatus.ToDo);
+    expect(moveRequested).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not emit a move while the card is busy', () => {
+    const fixture = TestBed.createComponent(TaskCardComponent);
+    fixture.componentRef.setInput('taskItem', taskItem);
+    fixture.componentRef.setInput('statusOptions', statusOptions);
+    fixture.componentRef.setInput('isStatusUpdating', true);
+    const moveRequested = jasmine.createSpy('moveRequested');
+    fixture.componentInstance.moveRequested.subscribe(moveRequested);
+    fixture.detectChanges();
+    const moveHandlers = fixture.componentInstance as unknown as {
+      requestMove(status: TaskItemStatus): void;
+    };
+
+    moveHandlers.requestMove(TaskItemStatus.Done);
+
+    expect(moveRequested).not.toHaveBeenCalled();
   });
 });

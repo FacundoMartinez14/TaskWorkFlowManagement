@@ -1,47 +1,41 @@
-.task-form {
-  border-color: #dbe1ec;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(27, 39, 63, 0.06);
-}
-
-mat-card-header {
-  padding: 18px 20px 0;
-}
-
-mat-card-header > mat-icon {
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-  background: #e7edff;
-  color: #3454d1;
-}
-
-mat-card-content {
-  padding: 16px 20px 18px;
+:host {
+  display: block;
 }
 
 form {
+  min-width: min(520px, calc(100vw - 64px));
+}
+
+.dialog-intro {
+  margin: 0 0 18px;
+  color: #65718a;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+mat-dialog-content {
   display: grid;
-  grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.2fr) auto;
-  gap: 14px;
-  align-items: start;
+  padding-top: 4px;
 }
 
-button {
-  min-height: 56px;
+mat-form-field {
+  width: 100%;
 }
 
-button mat-spinner {
+mat-dialog-actions {
+  padding: 12px 24px 20px;
+}
+
+mat-dialog-actions mat-spinner {
   display: inline-block;
-  margin-right: 8px;
+  margin-right: 7px;
 }
 
 .submit-error {
   display: flex;
-  grid-column: 1 / -1;
   align-items: center;
   gap: 8px;
-  margin: 0;
+  margin: 0 0 8px;
   border-radius: 8px;
   background: #ffedea;
   color: #9f251e;
@@ -49,22 +43,12 @@ button mat-spinner {
   font-size: 0.875rem;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 600px) {
   form {
-    grid-template-columns: 1fr 1fr;
+    min-width: 0;
   }
 
-  button {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 640px) {
-  form {
-    grid-template-columns: 1fr;
-  }
-
-  button {
-    width: 100%;
+  mat-dialog-actions {
+    padding-inline: 16px;
   }
 }

@@ -14,6 +14,6 @@ export class AppComponent {
   private readonly taskList = viewChild.required(TaskListComponent);
 
   protected startNewTask(): void {
-    this.taskList().focusCreationForm();
+    this.taskList().openCreateDialog();
   }
 }

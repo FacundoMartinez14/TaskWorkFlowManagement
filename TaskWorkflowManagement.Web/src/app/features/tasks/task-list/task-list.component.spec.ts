@@ -1,3 +1,4 @@
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { Subject, of } from 'rxjs';
@@ -53,9 +54,9 @@ describe('TaskListComponent', () => {
     expect(taskItemsService.getTaskItems).toHaveBeenCalledTimes(2);
     expect(fixture.nativeElement.textContent).toContain('Your board is empty');
     expect(fixture.nativeElement.textContent).toContain('Create first task');
-    const focusCreationForm = spyOn(fixture.componentInstance, 'focusCreationForm');
+    const openCreateDialog = spyOn(fixture.componentInstance, 'openCreateDialog');
     clickButton(fixture, 'Create first task');
-    expect(focusCreationForm).toHaveBeenCalledTimes(1);
+    expect(openCreateDialog).toHaveBeenCalledTimes(1);
   });
 
   it('keeps loaded cards visible while a refresh is in progress', () => {
@@ -83,6 +84,47 @@ describe('TaskListComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('No tasks match “does not exist”');
     clickButton(fixture, 'Clear filter');
     expect(fixture.nativeElement.textContent).toContain(taskItem.title);
+  });
+
+  it('moves a task through the status service, focuses it, and announces the result', () => {
+    taskItemsService.getTaskItems.and.returnValue(of([taskItem]));
+    taskItemsService.updateTaskItemStatus.and.returnValue(of(undefined));
+    const liveAnnouncer = TestBed.inject(LiveAnnouncer);
+    const announce = spyOn(liveAnnouncer, 'announce').and.resolveTo();
+    const fixture = createComponent();
+    const moveTask = fixture.componentInstance as unknown as {
+      moveTask(item: TaskItem, status: TaskItemStatus): void;
+    };
+
+    moveTask.moveTask(taskItem, TaskItemStatus.InProgress);
+
+    expect(taskItemsService.updateTaskItemStatus).toHaveBeenCalledOnceWith(taskItem.id, {
+      status: TaskItemStatus.InProgress
+    });
+    expect(document.activeElement?.id).toBe(`task-card-${taskItem.id}`);
+    expect(announce).toHaveBeenCalledOnceWith(
+      `Task ${taskItem.title} moved to In Progress`,
+      'polite'
+    );
+  });
+
+  it('falls back from a missing moved card to a source card and then the column heading', () => {
+    taskItemsService.getTaskItems.and.returnValue(of([taskItem]));
+    const fixture = createComponent();
+    const focusAfterMove = fixture.componentInstance as unknown as {
+      restoreFocusAfterMove(
+        item: TaskItem,
+        fallbackTaskId: string | null,
+        sourceStatus: TaskItemStatus
+      ): void;
+    };
+    const missingTask = { ...taskItem, id: 'missing-task' };
+
+    focusAfterMove.restoreFocusAfterMove(missingTask, taskItem.id, TaskItemStatus.ToDo);
+    expect(document.activeElement?.id).toBe(`task-card-${taskItem.id}`);
+
+    focusAfterMove.restoreFocusAfterMove(missingTask, null, TaskItemStatus.ToDo);
+    expect(document.activeElement?.id).toBe('task-column-ToDo-heading');
   });
 
   function createComponent(): ComponentFixture<TaskListComponent> {

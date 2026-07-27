@@ -6,11 +6,20 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Title</mat-label>
-      <input matInput formControlName="title" [maxlength]="titleMaxLength" autocomplete="off" />
+      <input
+        id="task-edit-title"
+        cdkFocusInitial
+        matInput
+        formControlName="title"
+        [maxlength]="titleMaxLength"
+        autocomplete="off"
+      />
       <mat-hint align="end">{{ taskForm.controls.title.value.length }}/{{ titleMaxLength }}</mat-hint>
       @if (taskForm.controls.title.hasError('maxlength')) {
         <mat-error>Title must be {{ titleMaxLength }} characters or fewer.</mat-error>
-      } @else if (taskForm.controls.title.invalid) {
+      } @else if (taskForm.controls.title.hasError('pattern')) {
+        <mat-error>Title cannot be only whitespace.</mat-error>
+      } @else if (taskForm.controls.title.hasError('required')) {
         <mat-error>Title is required.</mat-error>
       }
     </mat-form-field>

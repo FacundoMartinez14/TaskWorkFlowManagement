@@ -1,5 +1,7 @@
+import { A11yModule, LiveAnnouncer } from '@angular/cdk/a11y';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
-import { Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ChangeDetectorRef, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -14,7 +16,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { TaskItemStatus } from '../../../models/task-item-status';
 import { TaskItem } from '../../../models/task-item';
 import { TaskItemsService } from '../../../services/task-items.service';
-import { TaskCardComponent } from '../task-card/task-card.component';
+import { TaskCardComponent, TaskStatusOption } from '../task-card/task-card.component';
 import { TaskCreateFormComponent } from '../task-create-form/task-create-form.component';
 import { TaskDeleteDialogComponent } from '../task-delete-dialog/task-delete-dialog.component';
 import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.component';
@@ -29,6 +31,7 @@ interface BoardColumn {
 @Component({
   selector: 'app-task-list',
   imports: [
+    A11yModule,
     DragDropModule,
     MatButtonModule,
     MatCardModule,
@@ -37,17 +40,18 @@ interface BoardColumn {
     MatInputModule,
     MatProgressSpinnerModule,
     ReactiveFormsModule,
-    TaskCardComponent,
-    TaskCreateFormComponent
+    TaskCardComponent
   ],
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.css'
 })
 export class TaskListComponent implements OnInit {
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly dialog = inject(MatDialog);
+  private readonly document = inject(DOCUMENT);
+  private readonly liveAnnouncer = inject(LiveAnnouncer);
   private readonly snackBar = inject(MatSnackBar);
   private readonly taskItemsService = inject(TaskItemsService);
-  private readonly createForm = viewChild.required(TaskCreateFormComponent);
 
   protected readonly boardColumns: readonly BoardColumn[] = [
     {
@@ -70,11 +74,10 @@ export class TaskListComponent implements OnInit {
     }
   ];
   protected readonly columnIds = this.boardColumns.map(column => this.columnId(column.status));
-  protected readonly statusLabels: Record<TaskItemStatus, string> = {
-    [TaskItemStatus.ToDo]: 'To Do',
-    [TaskItemStatus.InProgress]: 'In Progress',
-    [TaskItemStatus.Done]: 'Done'
-  };
+  protected readonly statusOptions: readonly TaskStatusOption[] = this.boardColumns.map(column => ({
+    status: column.status,
+    label: column.title
+  }));
   protected readonly taskItems = signal<TaskItem[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly isRefreshing = signal(false);
@@ -103,8 +106,26 @@ export class TaskListComponent implements OnInit {
     this.loadTaskItems();
   }
 
-  public focusCreationForm(): void {
-    this.createForm().focusTitle();
+  public openCreateDialog(): void {
+    const trigger = this.activeElement();
+    const dialogRef = this.dialog.open<TaskCreateFormComponent, void, TaskItem>(
+      TaskCreateFormComponent,
+      {
+        autoFocus: '#task-create-title',
+        maxWidth: '600px',
+        restoreFocus: false,
+        width: 'calc(100% - 32px)'
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(createdTaskItem => {
+      if (createdTaskItem) {
+        this.addTaskItem(createdTaskItem);
+      }
+
+      this.changeDetectorRef.detectChanges();
+      this.restoreCreateTrigger(trigger, createdTaskItem?.id);
+    });
   }
 
   protected loadTaskItems(): void {
@@ -156,7 +177,15 @@ export class TaskListComponent implements OnInit {
       return;
     }
 
-    this.changeStatus(taskItem, status, `Task moved to ${this.statusLabels[status]}.`);
+    this.changeStatus(taskItem, status);
+  }
+
+  protected moveTask(taskItem: TaskItem, status: TaskItemStatus): void {
+    if (taskItem.status === status || this.isTaskBusy(taskItem.id)) {
+      return;
+    }
+
+    this.changeStatus(taskItem, status);
   }
 
   protected isStatusUpdating(taskItemId: string): boolean {
@@ -173,8 +202,10 @@ export class TaskListComponent implements OnInit {
     }
 
     this.dialog.open<TaskEditDialogComponent, TaskItem, TaskItem>(TaskEditDialogComponent, {
+      autoFocus: '#task-edit-title',
       data: taskItem,
       maxWidth: '600px',
+      restoreFocus: false,
       width: 'calc(100% - 32px)'
     }).afterClosed().subscribe(updatedTaskItem => {
       if (updatedTaskItem) {
@@ -183,6 +214,9 @@ export class TaskListComponent implements OnInit {
         );
         this.showSnackBar('Task updated.', 'success-snackbar');
       }
+
+      this.changeDetectorRef.detectChanges();
+      this.focusTaskActions(taskItem.id);
     });
   }
 
@@ -191,13 +225,18 @@ export class TaskListComponent implements OnInit {
       return;
     }
 
+    const focusFallback = this.taskRemovalFocusFallback(taskItem);
     this.dialog.open(TaskDeleteDialogComponent, {
+      autoFocus: 'first-tabbable',
       data: { title: taskItem.title },
       maxWidth: '440px',
+      restoreFocus: false,
       width: 'calc(100% - 32px)'
     }).afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.deleteTaskItem(taskItem);
+        this.deleteTaskItem(taskItem, focusFallback);
+      } else {
+        this.focusTaskActions(taskItem.id);
       }
     });
   }
@@ -206,7 +245,13 @@ export class TaskListComponent implements OnInit {
     return this.deletingTaskItemIds().has(taskItemId);
   }
 
-  private changeStatus(taskItem: TaskItem, status: TaskItemStatus, successMessage: string): void {
+  private changeStatus(taskItem: TaskItem, status: TaskItemStatus): void {
+    const sourceStatus = taskItem.status;
+    const sourceTaskIds = this.tasksForStatus(sourceStatus).map(item => item.id);
+    const sourceIndex = sourceTaskIds.indexOf(taskItem.id);
+    const fallbackTaskId =
+      sourceTaskIds[sourceIndex + 1] ?? sourceTaskIds[sourceIndex - 1] ?? null;
+
     this.updatingTaskItemIds.update(ids => new Set(ids).add(taskItem.id));
     this.clearItemError(this.statusUpdateErrors, taskItem.id);
 
@@ -216,18 +261,27 @@ export class TaskListComponent implements OnInit {
           taskItems.map(item => item.id === taskItem.id ? { ...item, status } : item)
         );
         this.finishStatusUpdate(taskItem.id);
-        this.showSnackBar(successMessage, 'success-snackbar');
+        this.changeDetectorRef.detectChanges();
+        this.restoreFocusAfterMove(taskItem, fallbackTaskId, sourceStatus);
+        const announcement = `Task ${taskItem.title} moved to ${this.statusLabel(status)}`;
+        void this.liveAnnouncer.announce(announcement, 'polite');
+        this.showSnackBar(`${announcement}.`, 'success-snackbar');
       },
       error: () => {
         const message = 'Unable to update status. Please try again.';
         this.statusUpdateErrors.update(errors => ({ ...errors, [taskItem.id]: message }));
         this.finishStatusUpdate(taskItem.id);
+        this.changeDetectorRef.detectChanges();
+        this.focusTaskActions(taskItem.id);
         this.showSnackBar(message, 'error-snackbar');
       }
     });
   }
 
-  private deleteTaskItem(taskItem: TaskItem): void {
+  private deleteTaskItem(
+    taskItem: TaskItem,
+    focusFallback: { taskItemId: string | null; status: TaskItemStatus }
+  ): void {
     this.deletingTaskItemIds.update(ids => new Set(ids).add(taskItem.id));
     this.clearItemError(this.deleteErrors, taskItem.id);
 
@@ -235,15 +289,99 @@ export class TaskListComponent implements OnInit {
       next: () => {
         this.taskItems.update(taskItems => taskItems.filter(item => item.id !== taskItem.id));
         this.finishDelete(taskItem.id);
+        this.changeDetectorRef.detectChanges();
+        this.focusTaskOrHeading(focusFallback.taskItemId, focusFallback.status);
         this.showSnackBar('Task deleted.', 'success-snackbar');
       },
       error: () => {
         const message = 'Unable to delete the task. Please try again.';
         this.deleteErrors.update(errors => ({ ...errors, [taskItem.id]: message }));
         this.finishDelete(taskItem.id);
+        this.changeDetectorRef.detectChanges();
+        this.focusTaskActions(taskItem.id);
         this.showSnackBar(message, 'error-snackbar');
       }
     });
+  }
+
+  private activeElement(): HTMLElement | null {
+    const activeElement = this.document.activeElement;
+    return activeElement instanceof HTMLElement ? activeElement : null;
+  }
+
+  private restoreCreateTrigger(trigger: HTMLElement | null, createdTaskItemId?: string): void {
+    if (trigger?.isConnected) {
+      trigger.focus();
+      return;
+    }
+
+    const persistentCreateTrigger = this.document.getElementById('new-task-button');
+    if (persistentCreateTrigger) {
+      persistentCreateTrigger.focus();
+      return;
+    }
+
+    if (createdTaskItemId) {
+      this.focusElement(this.document.getElementById(this.taskCardId(createdTaskItemId)));
+    }
+  }
+
+  private restoreFocusAfterMove(
+    taskItem: TaskItem,
+    fallbackTaskId: string | null,
+    sourceStatus: TaskItemStatus
+  ): void {
+    const movedCard = this.document.getElementById(this.taskCardId(taskItem.id));
+    if (movedCard) {
+      this.focusElement(movedCard);
+      return;
+    }
+
+    this.focusTaskOrHeading(fallbackTaskId, sourceStatus);
+  }
+
+  private focusTaskOrHeading(taskItemId: string | null, status: TaskItemStatus): void {
+    const fallbackCard = taskItemId
+      ? this.document.getElementById(this.taskCardId(taskItemId))
+      : null;
+    const heading = this.document.getElementById(`${this.columnId(status)}-heading`);
+    this.focusElement(fallbackCard ?? heading);
+  }
+
+  private focusTaskActions(taskItemId: string): void {
+    this.focusElement(this.document.getElementById(`task-actions-${taskItemId}`));
+  }
+
+  private focusElement(element: HTMLElement | null): void {
+    if (!element) {
+      return;
+    }
+
+    element.focus({ preventScroll: true });
+    const bounds = element.getBoundingClientRect();
+    const viewportHeight = this.document.defaultView?.innerHeight ?? 0;
+    if (bounds.top < 0 || bounds.bottom > viewportHeight) {
+      element.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  private taskRemovalFocusFallback(
+    taskItem: TaskItem
+  ): { taskItemId: string | null; status: TaskItemStatus } {
+    const taskIds = this.tasksForStatus(taskItem.status).map(item => item.id);
+    const taskIndex = taskIds.indexOf(taskItem.id);
+    return {
+      taskItemId: taskIds[taskIndex + 1] ?? taskIds[taskIndex - 1] ?? null,
+      status: taskItem.status
+    };
+  }
+
+  private taskCardId(taskItemId: string): string {
+    return `task-card-${taskItemId}`;
+  }
+
+  private statusLabel(status: TaskItemStatus): string {
+    return this.boardColumns.find(column => column.status === status)?.title ?? status;
   }
 
   private clearItemError(errorSignal: typeof this.statusUpdateErrors, taskItemId: string): void {
