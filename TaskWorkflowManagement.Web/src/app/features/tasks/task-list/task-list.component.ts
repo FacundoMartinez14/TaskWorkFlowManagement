@@ -1,5 +1,5 @@
 import { A11yModule, LiveAnnouncer } from '@angular/cdk/a11y';
-import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { DOCUMENT } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -16,17 +16,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { TaskItemStatus } from '../../../models/task-item-status';
 import { TaskItem } from '../../../models/task-item';
 import { TaskItemsService } from '../../../services/task-items.service';
-import { TaskCardComponent, TaskStatusOption } from '../task-card/task-card.component';
+import { TaskStatusOption } from '../task-card/task-card.component';
+import { BoardColumn, TaskColumnComponent } from '../task-column/task-column.component';
 import { TaskCreateFormComponent } from '../task-create-form/task-create-form.component';
 import { TaskDeleteDialogComponent } from '../task-delete-dialog/task-delete-dialog.component';
 import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.component';
-
-interface BoardColumn {
-  status: TaskItemStatus;
-  title: string;
-  description: string;
-  icon: string;
-}
 
 @Component({
   selector: 'app-task-list',
@@ -40,7 +34,7 @@ interface BoardColumn {
     MatInputModule,
     MatProgressSpinnerModule,
     ReactiveFormsModule,
-    TaskCardComponent
+    TaskColumnComponent
   ],
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.css'
@@ -169,15 +163,6 @@ export class TaskListComponent implements OnInit {
 
   protected columnId(status: TaskItemStatus): string {
     return `task-column-${status}`;
-  }
-
-  protected dropTask(event: CdkDragDrop<TaskItem[]>, status: TaskItemStatus): void {
-    const taskItem = event.item.data as TaskItem;
-    if (taskItem.status === status || this.isTaskBusy(taskItem.id)) {
-      return;
-    }
-
-    this.changeStatus(taskItem, status);
   }
 
   protected moveTask(taskItem: TaskItem, status: TaskItemStatus): void {

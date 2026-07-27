@@ -69,53 +69,19 @@
   } @else {
     <div class="board" cdkDropListGroup>
       @for (column of boardColumns; track column.status) {
-        <section
-          class="board-column"
-          [attr.data-status]="column.status"
-          [attr.aria-labelledby]="columnId(column.status) + '-heading'"
-        >
-          <header class="board-column__header">
-            <div class="board-column__title">
-              <mat-icon aria-hidden="true">{{ column.icon }}</mat-icon>
-              <div>
-                <h3 [id]="columnId(column.status) + '-heading'" tabindex="-1">{{ column.title }}</h3>
-                <p>{{ column.description }}</p>
-              </div>
-            </div>
-            <span class="task-count" [attr.aria-label]="tasksForStatus(column.status).length + ' tasks'">
-              {{ tasksForStatus(column.status).length }}
-            </span>
-          </header>
-
-          <div
-            class="task-drop-list"
-            cdkDropList
-            [id]="columnId(column.status)"
-            [cdkDropListData]="tasksForStatus(column.status)"
-            [cdkDropListConnectedTo]="columnIds"
-            [cdkDropListSortingDisabled]="true"
-            (cdkDropListDropped)="dropTask($event, column.status)"
-          >
-            @for (taskItem of tasksForStatus(column.status); track taskItem.id) {
-              <app-task-card
-                [taskItem]="taskItem"
-                [statusOptions]="statusOptions"
-                [isStatusUpdating]="isStatusUpdating(taskItem.id)"
-                [statusError]="statusUpdateErrors()[taskItem.id] ?? null"
-                [isDeleting]="isDeleting(taskItem.id)"
-                [deleteError]="deleteErrors()[taskItem.id] ?? null"
-                (editRequested)="openEditDialog(taskItem)"
-                (deleteRequested)="confirmDelete(taskItem)"
-                (moveRequested)="moveTask(taskItem, $event)"
-              />
-            } @empty {
-              <div class="column-empty">
-                <mat-icon aria-hidden="true">space_dashboard</mat-icon>
-                <span>Drop a task here</span>
-              </div>
-            }
-          </div>
-        </section>
+        <app-task-column
+          [column]="column"
+          [taskItems]="tasksForStatus(column.status)"
+          [connectedColumnIds]="columnIds"
+          [statusOptions]="statusOptions"
+          [updatingTaskItemIds]="updatingTaskItemIds()"
+          [statusUpdateErrors]="statusUpdateErrors()"
+          [deletingTaskItemIds]="deletingTaskItemIds()"
+          [deleteErrors]="deleteErrors()"
+          (editRequested)="openEditDialog($event)"
+          (deleteRequested)="confirmDelete($event)"
+          (moveRequested)="moveTask($event.taskItem, $event.status)"
+        />
       }
     </div>
   }

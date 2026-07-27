@@ -1,0 +1,109 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+h3,
+p {
+  margin: 0;
+}
+
+.board-column {
+  --column-accent: var(--status-todo);
+  --column-accent-soft: var(--status-todo-soft);
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--column-accent);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-muted);
+  overflow: hidden;
+}
+
+.board-column[data-status='InProgress'] {
+  --column-accent: var(--status-progress);
+  --column-accent-soft: var(--status-progress-soft);
+}
+
+.board-column[data-status='Done'] {
+  --column-accent: var(--status-done);
+  --column-accent-soft: var(--status-done-soft);
+}
+
+.board-column__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-16) var(--space-16) 14px;
+}
+
+.board-column__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.board-column__title > mat-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--column-accent-soft);
+  color: var(--column-accent);
+  font-size: 20px;
+}
+
+h3 {
+  color: var(--color-text-strong);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.board-column__header p {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.task-count {
+  min-width: 28px;
+  border-radius: 999px;
+  background: var(--column-accent-soft);
+  color: var(--column-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px var(--space-8);
+  text-align: center;
+}
+
+.task-drop-list {
+  display: grid;
+  min-height: 190px;
+  align-content: start;
+  gap: var(--space-12);
+  padding: 0 var(--space-12) var(--space-12);
+  transition: background-color 160ms ease;
+}
+
+.task-drop-list.cdk-drop-list-receiving {
+  background: color-mix(in srgb, var(--column-accent-soft) 60%, transparent);
+}
+
+.column-empty {
+  display: grid;
+  min-height: 150px;
+  place-items: center;
+  align-content: center;
+  gap: var(--space-8);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 10px;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 960px) {
+  .task-drop-list {
+    min-height: 130px;
+  }
+}

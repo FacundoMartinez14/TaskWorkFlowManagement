@@ -15,7 +15,7 @@
 
 .eyebrow {
   margin: 0 0 var(--space-8);
-  color: #475569;
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -24,7 +24,7 @@
 
 h1 {
   margin: 0;
-  color: #0f172a;
+  color: var(--color-text-heading);
   font-size: 2rem;
   line-height: 1.2;
 }
@@ -32,7 +32,7 @@ h1 {
 .intro {
   max-width: 640px;
   margin: var(--space-12) 0 0;
-  color: #475569;
+  color: var(--color-text-secondary);
   line-height: 1.6;
 }
 
@@ -45,10 +45,10 @@ h1 {
 
 .api-badge {
   flex: 0 0 auto;
-  border: 1px solid #c8d1e1;
+  border: 1px solid var(--color-border-strong);
   border-radius: 999px;
-  background: #ffffff;
-  color: #40516e;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
