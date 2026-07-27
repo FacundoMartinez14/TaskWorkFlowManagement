@@ -71,10 +71,12 @@ describe('TaskCreateFormComponent', () => {
 
     formAccess.submit();
     formAccess.submit();
+    formAccess.cancel();
 
     expect(taskItemsService.createTaskItem).toHaveBeenCalledTimes(1);
     expect(dialogRef.disableClose).toBeTrue();
     expect(formAccess.taskForm.disabled).toBeTrue();
+    expect(dialogRef.close).not.toHaveBeenCalled();
 
     createRequest.error(new Error('offline'));
     fixture.detectChanges();
@@ -109,11 +111,13 @@ describe('TaskCreateFormComponent', () => {
 function componentAccess(fixture: ComponentFixture<TaskCreateFormComponent>): {
   taskForm: TaskCreateFormComponent['taskForm'];
   errorMessage: TaskCreateFormComponent['errorMessage'];
+  cancel(): void;
   submit(): void;
 } {
   return fixture.componentInstance as unknown as {
     taskForm: TaskCreateFormComponent['taskForm'];
     errorMessage: TaskCreateFormComponent['errorMessage'];
+    cancel(): void;
     submit(): void;
   };
 }

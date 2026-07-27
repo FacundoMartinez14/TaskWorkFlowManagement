@@ -7,10 +7,44 @@
 html {
   min-height: 100%;
   --app-font-family: 'Inter', Arial, sans-serif;
+  --space-4: 4px;
   --space-8: 8px;
   --space-12: 12px;
   --space-16: 16px;
   --space-24: 24px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --color-app-background: #f4f6fb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #e9edf5;
+  --color-border: #dbe1ec;
+  --color-border-strong: #b9c2d2;
+  --color-card-border: #d8deea;
+  --color-card-border-hover: #aebbd1;
+  --color-divider: #edf0f5;
+  --color-text-strong: #172033;
+  --color-text-heading: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #536077;
+  --color-text-subtle: #65718a;
+  --color-primary: #3454d1;
+  --color-primary-soft: #dbe3ff;
+  --color-focus: #3454d1;
+  --color-error: #a72d25;
+  --color-error-strong: #8c1d18;
+  --color-error-surface: #fff1ef;
+  --color-error-border: #e29a96;
+  --color-success: #176b45;
+  --status-todo: #3f59b8;
+  --status-todo-soft: #dbe3ff;
+  --status-progress: #80500d;
+  --status-progress-soft: #f7e4c8;
+  --status-done: #176242;
+  --status-done-soft: #d2ebdf;
+  --shadow-card: 0 3px 12px rgb(27 39 63 / 6%);
+  --shadow-card-hover: 0 7px 20px rgb(27 39 63 / 10%);
+  --shadow-drag: 0 12px 32px rgb(27 39 63 / 22%);
   --mat-sys-body-large-font: var(--app-font-family);
   --mat-sys-body-medium-font: var(--app-font-family);
   --mat-sys-body-small-font: var(--app-font-family);
@@ -31,8 +65,8 @@ html {
 body {
   min-height: 100%;
   margin: 0;
-  background: #f4f6fb;
-  color: #172033;
+  background: var(--color-app-background);
+  color: var(--color-text-strong);
   font-family: var(--app-font-family);
 }
 
@@ -40,12 +74,28 @@ button {
   font: inherit;
 }
 
+:where(button, input, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 .success-snackbar {
-  --mdc-snackbar-container-color: #176b45;
-  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mdc-snackbar-container-color: var(--color-success);
+  --mdc-snackbar-supporting-text-color: var(--color-surface);
 }
 
 .error-snackbar {
-  --mdc-snackbar-container-color: #b3261e;
-  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mdc-snackbar-container-color: var(--color-error);
+  --mdc-snackbar-supporting-text-color: var(--color-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

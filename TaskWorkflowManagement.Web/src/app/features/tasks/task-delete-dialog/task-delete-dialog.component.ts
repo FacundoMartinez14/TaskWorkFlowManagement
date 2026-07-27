@@ -42,15 +42,15 @@ export interface TaskDeleteDialogData {
   `,
   styles: `
     .delete-confirm-button {
-      --mdc-filled-button-container-color: #b3261e;
-      --mdc-filled-button-label-text-color: #ffffff;
-      --mat-filled-button-state-layer-color: #ffffff;
-      background-color: #b3261e;
-      color: #ffffff;
+      --mdc-filled-button-container-color: var(--color-error);
+      --mdc-filled-button-label-text-color: var(--color-surface);
+      --mat-filled-button-state-layer-color: var(--color-surface);
+      background-color: var(--color-error);
+      color: var(--color-surface);
     }
 
     .delete-confirm-button:hover {
-      background-color: #8c1d18;
+      background-color: var(--color-error-strong);
     }
   `
 })

@@ -2,6 +2,22 @@
 
 TaskWorkFlowManagement is a full stack portfolio project for managing tasks through a simple workflow. It demonstrates a practical ASP.NET Core Web API, PostgreSQL persistence with EF Core, and a modern Angular frontend.
 
+## Application preview
+
+![Desktop workflow board with To Do, In Progress, and Done columns](docs/media/task-board-desktop.png)
+
+The board keeps the same workflow at narrow widths by stacking columns, controls, and task cards into a single readable flow.
+
+| Responsive board | Actionable API error |
+| --- | --- |
+| ![Mobile task board with stacked controls and workflow columns](docs/media/task-board-mobile.png) | ![Task board error state with a Try again action](docs/media/task-board-error-state.png) |
+
+Task creation and status movement remain available without relying on drag and drop.
+
+| Dialog-based creation | Accessible status movement |
+| --- | --- |
+| ![Create task dialog with validated title and description fields](docs/media/task-create-dialog.png) | ![Task Actions menu with Move to status choices](docs/media/task-move-menu.png) |
+
 ## Stack
 
 - ASP.NET Core Web API
@@ -21,8 +37,13 @@ TaskWorkFlowManagement is a full stack portfolio project for managing tasks thro
 - Status workflow: `ToDo`, `InProgress`, `Done`
 - Kanban-style task board
 - Drag and drop between status columns
+- Accessible `Move to…` menu for keyboard-friendly status changes
+- Dialog-based task creation and editing with validation and safe busy states
 - Keyword filtering by title or description
-- Loading and error states for API-backed UI flows
+- Responsive three-column board that stacks below 960px
+- Loading, retry, empty, filtered-empty, and mutation feedback states
+- Focus recovery and polite announcements after status changes
+- Focused Angular behavior tests using typed service doubles
 
 ## Local setup
 
@@ -66,6 +87,12 @@ For a production build:
 
 ```bash
 npm run build
+```
+
+Run the focused Angular tests with an installed Chrome-compatible browser:
+
+```bash
+npm test -- --watch=false
 ```
 
 The Angular dev server uses `proxy.conf.json` to forward `/api` requests to `http://localhost:5095`, so frontend code calls relative API URLs such as `/api/tasks`.

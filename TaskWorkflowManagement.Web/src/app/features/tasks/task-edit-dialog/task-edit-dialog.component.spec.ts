@@ -59,9 +59,11 @@ describe('TaskEditDialogComponent', () => {
     access.taskForm.markAsDirty();
 
     access.save();
+    access.cancel();
 
     expect(dialogRef.disableClose).toBeTrue();
     expect(access.taskForm.disabled).toBeTrue();
+    expect(dialogRef.close).not.toHaveBeenCalled();
 
     updateRequest.error(new Error('offline'));
     fixture.detectChanges();
@@ -81,11 +83,13 @@ describe('TaskEditDialogComponent', () => {
 function componentAccess(fixture: ComponentFixture<TaskEditDialogComponent>): {
   taskForm: any;
   errorMessage(): string | null;
+  cancel(): void;
   save(): void;
 } {
   return fixture.componentInstance as unknown as {
     taskForm: any;
     errorMessage(): string | null;
+    cancel(): void;
     save(): void;
   };
 }
